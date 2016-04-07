@@ -312,7 +312,7 @@ class Cdn extends \yii\base\Component {
 	 */
 	public function getSectionByRoot ( $root, $throwException = true ) {
 		// validate the root
-		if ( !is_string($root) || ($counts = substr_count($root, '/') ) === false || $counts != 2 ) {
+		if ( !is_string($root) || substr_count($root, '/') != 1 ) {
 			throw new InvalidParamException ("Invalid section root '{$root}' given");
 		}
 
