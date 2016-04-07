@@ -339,7 +339,7 @@ class Cdn extends \yii\base\Component {
 	 */
 	public function getFileByRoot ( $root, $asUrl = false, $throwException = true ) {
 		// validate the root
-		if ( !is_string($root) || ($counts = substr_count($root, '/') ) === false || $counts != 3 ) {
+		if ( !is_string($root) || substr_count($root, '/') != 2 ) {
 			throw new InvalidParamException ("Invalid file root '{$root}' given");
 		}
 
