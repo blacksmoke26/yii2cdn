@@ -41,46 +41,15 @@ A Yii Framework 2 component for using assets in different environments (Local/CD
 
 #### III. Registering assets
 -------------------
-1. Create a new action `test` in your current app's `Site/Controller`.
-```php
-	// ...
-    
-    public function actionTest () {
-    	return $this->render('test');
-    }
-    
-    // ...
-```
-2. Now create a file `@app/views/site/test.php` and open into code editor.
-3. Paste the following code:
+1. Open any view file and paste the following line:
 
 ```php
-<?php
-
-/*
-  Uncomment this line for in development environment
-  This line force to use offline files url
-  > TRUE will include all the offline config-files/components/sections/files
-     and will be skipped @cdn tags
-  > FALSE will skip all the offline config-files/components/sections/files
-     and will use @cdn tags (for registering urls)
-*/
-// define('YII2CDN_OFFLINE', true);
-
-// Turn on the code editor autocomplete
-/** @var \yii2cdn\Cdn $cdn */
-$cdn = Yii::$app->cdn;
-
-/*
-  ~ Register all css files
-  @see \yii2cdn\Component::get()
-  @see \yii2cdn\Component::registerCssFiles()
-  @see \yii2cdn\Component::registerJsFiles()
-*/
-$cdn->get('font-awesome')->register();
+//...
+Yii::$app->cdn->get('font-awesome')->register();
+//...
 ```
 
 #### IV. Final moment
-1. Open that `test` action in your browser and check the view souce.
+1. Browse the action url in your browser and check the view souce.
 
 > Now it's time to play around, See ya!
