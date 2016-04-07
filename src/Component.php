@@ -282,7 +282,7 @@ class Component
 	 */
 	public function getFileByRoot ( $root, $asUrl = false, $throwException = true ) {
 		// validate the root
-		if ( !is_string($root) || ($counts = substr_count($root, '/') ) === false || $counts != 2 ) {
+		if ( !is_string($root) || substr_count($root, '/') != 1 ) {
 			throw new InvalidParamException ("Invalid root '{$root}' given");
 		}
 
