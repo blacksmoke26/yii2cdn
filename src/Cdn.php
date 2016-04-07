@@ -154,7 +154,7 @@ class Cdn extends \yii\base\Component {
 			throw new InvalidConfigException("cacheKey property is empty");
 		}
 
-		// Load cdn config files
+		// Build components
 		$this->buildComponentsCache();
 	}
 	/**
@@ -169,10 +169,6 @@ class Cdn extends \yii\base\Component {
 	 * Build a components list
 	 */
 	protected function buildComponentsCache () {
-
-		if ( !is_array($this->configs) || !\count($this->configs) ) {
-			return;
-		}
 
 		if ( $this->enableCaching ) {
 
