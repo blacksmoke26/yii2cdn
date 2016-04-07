@@ -218,17 +218,15 @@ class ConfigParser
 			return null;
 		}
 
-		if ( array_key_exists('@cdn', $file) && Cdn::isOnline() ) {
-			$filename = $file['@cdn'];
-		} else {
-			$filename = $this->replaceFileNameTags($file[0]);
-		}
+		// Check file @cdn exist, use that version,
+		$filename = array_key_exists('@cdn', $file) && Cdn::isOnline()
+			? $file['@cdn']
+			: $this->replaceFileNameTags($file[0]); // use offline version
 
-		if ( array_key_exists('@id', $file) ) {
-			$fileId = trim($file['@id']);
-		} else {
-			$fileId = (string)uniqid('*');
-		}
+		// Check file ID, if doesn't exist, assign a unique id
+		$fileId = array_key_exists('@id', $file)
+			? trim($file['@id'])
+			: (string)uniqid('*');
 
 		if ( array_key_exists('@options', $file) ) {
 			if ( !is_array($file['@options']) || !count($file['@options']) ){
@@ -315,7 +313,7 @@ class ConfigParser
 			return preg_replace_callback_array($patterns, $fileName);
 		}
 
-		return $this->getUrl() . (substr($fileName, 0, 1) != '/' ? "/{$fileName}" : $fileName );
+		return rtrim($this->getUrl(), '/') . "/" . ltrim($fileName, '/');
 	}
 
 	/**
@@ -382,13 +380,11 @@ class ConfigParser
 
 				foreach ($data as $fileId => $fileName ) {
 
-					if ( !preg_match('/^@component([A-Za-z]+)/i', $fileName) ) {
-						$nFileName = $fileName;
-					} else {
-						$nFileName = self::replaceComponentTagsFromFileName($fileName, $reListed);
-					}
+					$nFileName = !preg_match('/^@component([A-Za-z]+)/i', $fileName)
+						? $fileName
+						: self::replaceComponentTagsFromFileName($fileName, $reListed);
 
-					$components[$componentId][$sectionId][$fileId] = str_replace('//', '/', $nFileName);
+					$components[$componentId][$sectionId][$fileId] = $nFileName; //str_replace('//', '/', $nFileName);
 				}
 			}
 		}
