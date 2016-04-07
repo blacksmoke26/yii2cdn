@@ -231,7 +231,7 @@ class Component
 	 * </code>
 	 */
 	public function registerCssFiles( array $options = [], callable $callback = null ) {
-		if ( $this->sectionExists('css', false ) ) {
+		if ( !$this->sectionExists('css', false ) ) {
 			return;
 		}
 
@@ -260,7 +260,7 @@ class Component
 	 * </code>
 	 */
 	public function registerJsFiles( array $options = [], callable $callback = null ) {
-		if ( $this->sectionExists('js', false ) ) {
+		if ( !$this->sectionExists('js', false ) ) {
 			return;
 		}
 
