@@ -256,7 +256,10 @@ class Cdn extends \yii\base\Component {
 	 * Remove cache and rebuild components list
 	 */
 	public function refresh () {
-		\Yii::$app->cache->delete( $this->cacheKey );
+		if ( $this->enableCaching && !is_null($this->cacheKey) ) {
+			\Yii::$app->cache->delete( $this->cacheKey );
+		}
+
 		$this->buildComponentsCache();
 	}
 
