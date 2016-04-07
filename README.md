@@ -37,7 +37,7 @@ to the require section of your `composer.json` file.
 #### II. Add a component
 ---------------------
 1. Open `@app/config/main.php` in your code editor.
-2. Add a new propery `cdn` under `components` section like following code:
+2. Add a new propery `cdn` under `components` section like the following code:
 
 ```php
 // ...
