@@ -256,10 +256,7 @@ class Cdn extends \yii\base\Component {
 	 * Remove cache and rebuild components list
 	 */
 	public function refresh () {
-		if ( $this->enableCaching && !is_null($this->cacheKey) ) {
-			\Yii::$app->cache->delete( $this->cacheKey );
-		}
-
+		\Yii::$app->cache->delete( $this->cacheKey );
 		$this->buildComponentsCache();
 	}
 
@@ -318,8 +315,7 @@ class Cdn extends \yii\base\Component {
 
 		list ( $componentId, $sectionId ) = explode( '/', $root );
 
-		return $this->get($componentId, $throwException)
-			->getSection($sectionId, $throwException);
+		return $this->get($componentId, $throwException)->getSection($sectionId, $throwException);
 	}
 
 	/**
@@ -345,8 +341,6 @@ class Cdn extends \yii\base\Component {
 
 		list ($componentId, $sectionId, $fileId) = explode('/', $root);
 
-		return $this->get($componentId, $throwException)
-			->getSection($sectionId, $throwException)
-			->getFileById ($fileId, $asUrl, $throwException);
+		return $this->get($componentId, $throwException)->getFileByRoot( "$sectionId/$fileId", $asUrl, $throwException );
 	}
 }
