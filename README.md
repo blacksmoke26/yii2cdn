@@ -50,9 +50,11 @@ to the require section of your `composer.json` file.
 		'components' => [
         	'font-awesome' => [
             	'css' => [
-                	'css/font-awesome.min.css', // offline version
-                    '@cdn' => '//cdnjs.cloudflare.com/ajax/libs/font-awesome/'
-                     		. '4.5.0/css/font-awesome.min.css', // online version
+                	[
+                    	'css/font-awesome.min.css', // offline version
+                    	'@cdn' => '//cdnjs.cloudflare.com/ajax/libs/font-awesome/'
+                        		. '4.5.0/css/font-awesome.min.css', // online version
+                    ]
                 ]
             ]
 		],
