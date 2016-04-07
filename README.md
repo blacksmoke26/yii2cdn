@@ -1,11 +1,30 @@
 # yii2cdn
 A Yii Framework 2 component for using assets in different environments (Local/CDNs)
 
-**Notice:** *This is an experimental release. You may face difficulties, bugs or strange issues.*
+**Notice:** *This is an experimental version. You may face difficulties, bugs and strange issues.* In case of any possibility, please create an [issue](https://github.com/blacksmoke26/yii2cdn/issues) and I will try to help you. :)
 
 Wiki: [https://github.com/blacksmoke26/yii2cdn/wiki](https://github.com/blacksmoke26/yii2cdn/wiki)
 
-### Quick Setup
+## Installation
+
+The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
+
+Either run
+
+```
+php composer.phar require --prefer-dist blacksmoke26/yii2cdn "*"
+```
+
+or add
+
+```
+"blacksmoke26/yii2cdn": "*"
+```
+
+to the require section of your `composer.json` file.
+
+
+## Usage
 
 **Info:** *This tutorial will demonstrate how to use [`Font-Awesome`](https://github.com/FortAwesome/Font-Awesome) library in a <code>production</code> (online/CDN) or <code>development</code> (local/offline) environment.*
 
