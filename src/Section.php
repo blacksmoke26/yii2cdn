@@ -61,9 +61,6 @@ class Section
 	 * @param array $config Configuration object
 	 */
 	public function __construct ( array $config ) {
-
-		// $componentId, $section, array $files, $baseUrl, array $attributes = []
-
 		$this->componentId = $config['componentId,'];
 		$this->section = $config['section'];
 		$this->baseUrl = $config['baseUrl'];
@@ -152,8 +149,8 @@ class Section
 	 *     > boolean listOnly : Returning the files url list only (default: false)
 	 *     > boolean noIds : Returning the list without file ids (default: false)
 	 *     > boolean unique : True will return only unique files (default: true)
-	 *     > array excluded : List of Files ids to be skipped (default: [])
-	 *     > array includeOnly : List of Files ids to be excluded, other will be skipped (default: [])
+	 *     > array excluded : List of Files id to be skipped (default: [])
+	 *     > array includeOnly : List of Files id to be included, other will be skipped (default: [])
 	 * </code>
 	 * @param boolean $throwException (optional) True will throw exception (default: true)
 	 * @throws \yii\base\InvalidParamException Option 'callback' not a function
