@@ -129,13 +129,13 @@ class Cdn extends \yii\base\Component {
 	 * Cache Key for caching build cdn configurations to load fast
 	 * @var string
 	 */
-	public $cacheKey;
+	public $cacheKey = null;
 
 	/**
 	 * Enable storing components configuration in cache
 	 * @var boolean
 	 */
-	public $enableCaching = true;
+	public $enableCaching = false;
 
 	/**
 	 * Component intializer
