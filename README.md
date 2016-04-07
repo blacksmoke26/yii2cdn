@@ -1,7 +1,11 @@
 # yii2cdn
 A Yii Framework 2 component for using assets in different environments (Local/CDNs)
 
-### Quick usage
+**Notice:** *This is an experimental release. You may face difficulties, bugs or strange issues.*
+
+Wiki: [https://github.com/blacksmoke26/yii2cdn/wiki](https://github.com/blacksmoke26/yii2cdn/wiki)
+
+### Quick Setup
 
 **Info:** *This tutorial will demonstrate how to use [`Font-Awesome`](https://github.com/FortAwesome/Font-Awesome) library in a <code>production</code> (online/CDN) or <code>development</code> (local/offline) environment.*
 
