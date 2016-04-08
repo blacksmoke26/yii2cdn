@@ -1,0 +1,23 @@
+language: php
+
+branches:
+  # Only test the master branch.
+  only:
+    - master
+
+php:
+  - 5.4
+  - 5.5
+  - 5.6
+  - 7.0
+
+sudo: false
+
+cache:
+  directories:
+    - src
+
+before_script:
+  - 'if [ "$TRAVIS_PHP_VERSION" = "5.4" ]; then rm composer.lock; fi'
+  - composer install -n --prefer-dist
+
