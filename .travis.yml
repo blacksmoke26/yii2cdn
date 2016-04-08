@@ -18,6 +18,5 @@ cache:
     - src
 
 before_script:
-  - 'if [ "$TRAVIS_PHP_VERSION" = "5.4" ]; then rm composer.lock; fi'
   - composer install --prefer-dist
 
