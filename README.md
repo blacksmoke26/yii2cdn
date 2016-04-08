@@ -1,9 +1,13 @@
 # yii2cdn
+
 A Yii Framework 2 component for using assets in different environments (Local/CDNs)
 
 **Notice:** *This is an experimental version. You may face difficulties, bugs and strange issues.* In case of any possibility, please create an [issue](https://github.com/blacksmoke26/yii2cdn/issues) and I will try to help you. :)
 
-Wiki: [https://github.com/blacksmoke26/yii2cdn/wiki](https://github.com/blacksmoke26/yii2cdn/wiki)
+## Resources
+
+* **Wiki**: [https://github.com/blacksmoke26/yii2cdn/wiki](https://github.com/blacksmoke26/yii2cdn/wiki)
+* **Class Reference**: [http://blacksmoke26.github.io/yii2cdn/api/](http://blacksmoke26.github.io/yii2cdn/api/)
 
 ## Installation
 
