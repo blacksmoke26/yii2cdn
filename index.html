@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Yii2cdn by blacksmoke26</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Yii2cdn</h1>
+      <h2 class="project-tagline">A Yii Framework 2 component for using assets in different environments (Local/CDNs)</h2>
+      <a href="https://github.com/blacksmoke26/yii2cdn" class="btn">View on GitHub</a>
+      <a href="https://github.com/blacksmoke26/yii2cdn/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/blacksmoke26/yii2cdn/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="yii2cdn" class="anchor" href="#yii2cdn" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>yii2cdn</h1>
+
+<p>A Yii Framework 2 component for using assets in different environments (Local/CDNs)</p>
+
+<p><strong>Notice:</strong> <em>This is an experimental version. You may face difficulties, bugs and strange issues.</em> In case of any possibility, please create an <a href="https://github.com/blacksmoke26/yii2cdn/issues">issue</a> and I will try to help you. :)</p>
+
+<p>Wiki: <a href="https://github.com/blacksmoke26/yii2cdn/wiki">https://github.com/blacksmoke26/yii2cdn/wiki</a></p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>The preferred way to install this extension is through <a href="http://getcomposer.org/download/">composer</a>.</p>
+
+<p>Either run</p>
+
+<pre><code>php composer.phar require --prefer-dist blacksmoke26/yii2cdn "*"
+</code></pre>
+
+<p>or add</p>
+
+<pre><code>"blacksmoke26/yii2cdn": "*"
+</code></pre>
+
+<p>to the require section of your <code>composer.json</code> file.</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+
+<p><strong>Info:</strong> <em>This tutorial will demonstrate how to use <a href="https://github.com/FortAwesome/Font-Awesome"><code>Font-Awesome</code></a> library in a <code>production</code> (online/CDN) or <code>development</code> (local/offline) environment.</em></p>
+
+<h4>
+<a id="i-installing-a-library" class="anchor" href="#i-installing-a-library" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>I. Installing a library</h4>
+
+<hr>
+
+<ol>
+<li>Create a <code>cdn</code> directory under your root folder.</li>
+<li>Install or download <a href="https://github.com/FortAwesome/Font-Awesome"><code>FortAwesome/Font-Awesome</code></a> library under <code>cdn</code> directory.
+
+<ul>
+<li>Path should be <code>/cdn/font-awesome</code>.</li>
+</ul>
+</li>
+</ol>
+
+<h4>
+<a id="ii-add-a-component" class="anchor" href="#ii-add-a-component" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>II. Add a component</h4>
+
+<hr>
+
+<ol>
+<li>Open <code>@app/config/main.php</code> in your code editor.</li>
+<li>Add a new propery <code>cdn</code> under <code>components</code> section like the following code:</li>
+</ol>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-c">// ...</span></span>
+<span class="pl-s1"><span class="pl-s"><span class="pl-pds">'</span>components<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> [</span>
+<span class="pl-s1">    <span class="pl-c">// ...</span></span>
+<span class="pl-s1">    <span class="pl-s"><span class="pl-pds">'</span>cdn<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> [</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">'</span>class<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>\yii2cdn\Cdn<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">'</span>baseUrl<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>/cdn<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">'</span>basePath<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-c1">dirname</span>(<span class="pl-c1">dirname</span>(<span class="pl-c1">__DIR__</span>)) <span class="pl-k">.</span> <span class="pl-s"><span class="pl-pds">'</span>/cdn<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">'</span>components<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> [</span>
+<span class="pl-s1">            <span class="pl-s"><span class="pl-pds">'</span>font-awesome<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> [</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>css<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> [</span>
+<span class="pl-s1">                    [</span>
+<span class="pl-s1">                        <span class="pl-s"><span class="pl-pds">'</span>css/font-awesome.min.css<span class="pl-pds">'</span></span>, <span class="pl-c">// offline version</span></span>
+<span class="pl-s1">                        <span class="pl-s"><span class="pl-pds">'</span>@cdn<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>//cdnjs.cloudflare.com/ajax/libs/font-awesome/<span class="pl-pds">'</span></span></span>
+<span class="pl-s1">                                <span class="pl-k">.</span> <span class="pl-s"><span class="pl-pds">'</span>4.5.0/css/font-awesome.min.css<span class="pl-pds">'</span></span>, <span class="pl-c">// online version</span></span>
+<span class="pl-s1">                    ]</span>
+<span class="pl-s1">                ]</span>
+<span class="pl-s1">            ]</span>
+<span class="pl-s1">        ],</span>
+<span class="pl-s1">    ],</span>
+<span class="pl-s1">  <span class="pl-c">// ...</span></span>
+<span class="pl-s1">],</span>
+<span class="pl-s1"><span class="pl-c">// ...</span></span></pre></div>
+
+<h4>
+<a id="iii-registering-assets" class="anchor" href="#iii-registering-assets" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>III. Registering assets</h4>
+
+<hr>
+
+<ol>
+<li>Open any view file and paste the following line:</li>
+</ol>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-c">//...</span></span>
+<span class="pl-s1"><span class="pl-c1">Yii</span><span class="pl-k">::</span><span class="pl-smi">$app</span><span class="pl-k">-&gt;</span><span class="pl-smi">cdn</span><span class="pl-k">-&gt;</span>get(<span class="pl-s"><span class="pl-pds">'</span>font-awesome<span class="pl-pds">'</span></span>)<span class="pl-k">-&gt;</span>register();</span>
+<span class="pl-s1"><span class="pl-c">//...</span></span></pre></div>
+
+<h4>
+<a id="iv-final-moment" class="anchor" href="#iv-final-moment" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>IV. Final moment</h4>
+
+<ol>
+<li>Browse the action url in your browser and check the view souce.</li>
+</ol>
+
+<blockquote>
+<p>Now it's time to play around, See ya!</p>
+</blockquote>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/blacksmoke26/yii2cdn">Yii2cdn</a> is maintained by <a href="https://github.com/blacksmoke26">blacksmoke26</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
