@@ -1,3 +1,5 @@
+[![Latest Stable Version](https://poser.pugx.org/blacksmoke26/yii2cdn/v/stable)](https://packagist.org/packages/blacksmoke26/yii2cdn) [![Total Downloads](https://poser.pugx.org/blacksmoke26/yii2cdn/downloads)](https://packagist.org/packages/blacksmoke26/yii2cdn) [![Latest Unstable Version](https://poser.pugx.org/blacksmoke26/yii2cdn/v/unstable)](https://packagist.org/packages/blacksmoke26/yii2cdn) [![License](https://poser.pugx.org/blacksmoke26/yii2cdn/license)](https://packagist.org/packages/blacksmoke26/yii2cdn)
+
 # yii2cdn
 
 A Yii Framework 2 component for using assets in different environments (Local/CDNs)
