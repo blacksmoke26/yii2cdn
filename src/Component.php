@@ -128,7 +128,7 @@ class Component {
 	 * @return array List of js section files
 	 */
 	public function getJsFiles ( $asUrl = false, $unique = true ) {
-		$files = $this->getSection ( 'css' )->getFiles ( true, $unique );
+		$files = $this->getSection ( 'js' )->getFiles ( true, $unique );
 
 		if ( !$asUrl ) {
 			return $files;
