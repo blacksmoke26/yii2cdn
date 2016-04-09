@@ -27,6 +27,10 @@ defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
  */
 class Cdn extends \yii\base\Component {
 
+	const MODE_OFFLINE = 'offline';
+
+	const MODE_ONLINE = 'online';
+
 	/**
 	 * Base url to cdn directory
 	 * @var string
@@ -140,15 +144,6 @@ class Cdn extends \yii\base\Component {
 	protected $buildIncludes = [];
 
 	/**
-	 * Check that Mode Live or Offline
-	 *
-	 * @return bool
-	 */
-	public static function isOnline () {
-		return !defined ( 'YII2CDN_OFFLINE' ) ? true : !YII2CDN_OFFLINE;
-	}
-
-	/**
 	 * Component intializer
 	 * @throws \yii\base\InvalidConfigException when property is empty
 	 */
@@ -167,6 +162,67 @@ class Cdn extends \yii\base\Component {
 
 		// Build components
 		$this->buildComponentsCache();
+	}
+
+	/**
+	 * Check that Mode Live or Offline
+	 *
+	 * @return bool
+	 */
+	public static function isOnline () {
+		return !defined ( 'YII2CDN_OFFLINE' ) ? true : !YII2CDN_OFFLINE;
+	}
+
+	/**
+	 * Perform a callback function when Offline mode is active
+	 * @see Cdn::isOnline()
+	 * @param callable $callback A callback function
+	 * <code>
+	 *     function ( \yii2cdn\Cdn $cdn ) {
+	 *         // some logic here
+	 *     }
+	 * </code>
+	 * @param string $property (optional) Default component property name (default: cdn)
+	 * @return Cdn
+	 * @throws \yii\base\InvalidConfigException When the callback parameter is not a function
+	 */
+	public function whenOffline ( $callback, $property = 'cdn' ) {
+
+		if ( !is_callable($callback) ) {
+			throw new InvalidParamException ("Parameter '{callback}' should be a function");
+		}
+
+		if ( !self::isOnline()  ) {
+			call_user_func_array( $callback, [\Yii::$app->get($property)] );
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Perform a callback function when Online mode is active
+	 * @see Cdn::isOnline()
+	 * @param callable $callback A callback function
+	 * <code>
+	 *     function ( \yii2cdn\Cdn $cdn ) {
+	 *         // some logic here
+	 *     }
+	 * </code>
+	 * @param string $property (optional) Default component property name (default: cdn)
+	 * @return Cdn
+	 * @throws \yii\base\InvalidConfigException When the callback parameter is not a function
+	 */
+	public function whenOnline ( $callback, $property = 'cdn' ) {
+
+		if ( !is_callable($callback) ) {
+			throw new InvalidParamException ("Parameter '{callback}' should be a function");
+		}
+
+		if ( self::isOnline()  ) {
+			call_user_func_array( $callback, [\Yii::$app->get($property)] );
+		}
+
+		return $this;
 	}
 
 	/**
