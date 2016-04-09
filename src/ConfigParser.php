@@ -25,23 +25,20 @@ use yii\base\InvalidParamException;
 class ConfigParser
 {
 	/**
+	 * List of sections name
+	 * @var array
+	 */
+	protected static $sections = [ ];
+	/**
 	 * Component ID
 	 * @var string
 	 */
 	protected $_id;
-
 	/**
 	 * CDN Base URL
 	 * @var string
 	 */
 	protected $baseUrl;
-
-	/**
-	 * List of sections name
-	 * @var array
-	 */
-	protected static $sections = [];
-
 	/**
 	 * Component Configuration
 	 * @var array
@@ -93,52 +90,200 @@ class ConfigParser
 	}
 
 	/**
-	 * Get @src attribute value (empty when not exist/null)
-	 * @return string
+	 * Replaces @component* tags from the components
+	 *
+	 * @see ComponentConfigParser::replaceComponentTagsFromFileName()
+	 * @param array $components Pre Build Components data
+	 * @return array Post components object
 	 */
-	protected function getAttrSrc ()
+	public static function touchComponentTags ( $components )
 	{
-		return array_key_exists('@src', $this->config) && !empty($this->config['@src'])
-			? trim($this->config['@src'])
-			: '';
+		if ( !count ( $components ) ) {
+			return $components;
+		}
+
+		# $reListed['filesId'], $reListed['componentsUrl']
+		$reListed = self::listFilesByRoot ( $components );
+
+		foreach ( $components as $componentId => $sections ) {
+			foreach ( $sections as $sectionId => $data ) {
+				if ( !in_array ( $sectionId, self::$sections ) || !count ( $data ) ) {
+					continue;
+				}
+
+				foreach ( $data as $fileId => $fileName ) {
+
+					$nFileName = !preg_match ( '/^@component([A-Za-z]+)/i', $fileName )
+						? $fileName
+						: self::replaceComponentTagsFromFileName ( $fileName, $reListed );
+
+					$components[$componentId][$sectionId][$fileId] = $nFileName; //str_replace('//', '/', $nFileName);
+				}
+			}
+		}
+
+		return $components;
+	}
+
+	/**
+	 * Get the components files list<br>
+	 * Key=Value pair of [COMPONENT_ID/SECTION_ID/FILE_ID]=>FILE_URL
+	 * @param array $components Pre Build Components data
+	 * @return array
+	 */
+	protected static function listFilesByRoot ( $components )
+	{
+		if ( !count ( $components ) ) {
+			return $components;
+		}
+
+		$filesId = [ ];
+		$componentsUrl = [ ];
+
+		foreach ( $components as $componentId => $sections ) {
+
+			$componentsUrl[$componentId] = $sections['baseUrl'];
+
+			foreach ( $sections as $sectionId => $data ) {
+				if ( !in_array ( $sectionId, self::$sections ) || !count ( $data ) ) {
+					continue;
+				}
+
+				foreach ( $data as $fileId => $fileName ) {
+
+					if ( strstr ( $fileId, '*' ) !== false ) {
+						continue;
+					}
+
+					// File unique id
+					$uid = "{$componentId}/{$sectionId}/" . $fileId;
+
+					$filesId[$uid] = $fileName;
+				}
+			}
+		}
+
+		return [
+			'filesId' => $filesId,
+			'componentsUrl' => $componentsUrl
+		];
+	}
+
+	/**
+	 * Replaces @component* tags (case insensitive) from given filename
+	 * Tags (starts with @component)<br>
+	 * <code>
+	 *    > componentUrl(ID)
+	 *    > componentFile(ID/SECTION/FILE_ID)
+	 * </code>
+	 *
+	 * @param string $fileName File name replace from
+	 * @param array $indexed Indexed data object
+	 * @return array Replaced tags object
+	 */
+	protected static function replaceComponentTagsFromFileName ( $fileName, array $indexed )
+	{
+
+		$patterns = [
+
+			// tag: componentUrl(ID)
+			'/^@(?i)componentUrl(?-i)\(([^\)]+)\)(.+)$/' => function ( $match ) use ( $indexed ) {
+
+				if ( !array_key_exists ( $match[1], $indexed['componentsUrl'] ) ) {
+					throw new InvalidConfigException ( "Unknown CDN component id '{$match[1]}' given" );
+				}
+
+				return $indexed['componentsUrl'][$match[1]]
+				. ( substr ( $match[2], 0, 1 ) !== '/' ? '/' . $match[2] : $match[2] );
+			},
+
+			// tag: componentFile(ID/SECTION/FILE_ID)
+			'/^@(?i)componentFile(?-i)\(([^\)]+)\)$/' => function ( $match ) use ( $indexed ) {
+
+				if ( !array_key_exists ( $match[1], $indexed['filesId'] ) ) {
+					throw new InvalidConfigException ( "Unknown CDN component file id '{$match[1]}' given" );
+				}
+
+				return $indexed['filesId'][$match[1]];
+			},
+		];
+
+		return preg_replace_callback_array ( $patterns, $fileName );
+	}
+
+	/**
+	 * Get the parsed configuration
+	 *
+	 * @return array|null Component config | null when skipped
+	 */
+	public function getParsed ()
+	{
+
+		if ( $this->getAttrOffline () === true && Cdn::isOnline () ) {
+			return null;
+		}
+
+		$config = [
+			'id' => $this->_id,
+			'baseUrl' => $this->getUrl (),
+			'sectionClass' => $this->_props['sectionClass'],
+			'fileClass' => $this->_props['fileClass'],
+			'sections' => self::$sections,
+		];
+
+		// Validate section names if given
+		if ( count ( $offlineSections = $this->getAttrOfflineSections () ) ) {
+			foreach ( $offlineSections as $sect ) {
+				if ( !in_array ( $sect, self::$sections ) ) {
+					throw new InvalidConfigException ( "Offline Section '{$sect}' name doesn't exist" );
+				}
+			}
+		}
+
+		foreach ( self::$sections as $section ) {
+
+			if ( in_array ( $section, $offlineSections ) && Cdn::isOnline () ) {
+				continue;
+			}
+
+			$config[$section] = $this->getFilesBySection ( $section );
+		}
+
+		$config['fileAttrs'] = $this->filesAttrs;
+
+		return $config;
 	}
 
 	/**
 	 * Get @offline attribute value (empty when not exist/null)
 	 * @return string
 	 */
-	protected function getAttrOffline ()
-	{
+	protected function getAttrOffline () {
 		return array_key_exists('@offline', $this->config) && !empty($this->config['@offline'])
 			? boolval($this->config['@offline'])
 			: false;
 	}
 
 	/**
-	 * Get @offlineSections attribute value (empty when not exist/null)
-	 * @return array
+	 * Get @src attribute value (empty when not exist/null)
+	 * @return string
 	 */
-	protected function getAttrOfflineSections ()
+	protected function getUrl ()
 	{
-		if ( !array_key_exists('@offlineSections', $this->config) ) {
-			return [];
-		}
+		$attrBaseUrl = $this->getAttrBaseUrl ();
+		$attrSrc = $this->getAttrSrc ();
 
-		$lst = $this->config['@offlineSections'];
+		$baseUrl = empty( $attrBaseUrl ) ? $this->baseUrl : $attrBaseUrl;
+		$baseUrl .= empty( $attrSrc ) ? '/' . $this->_id : '/' . $attrSrc;
 
-		if ( !is_array($lst) ) {
-			throw new InvalidParamException ('Parameter @offlineSections must be an array');
-		}
-
-		return $this->config['@offlineSections'];
+		return $baseUrl;
 	}
 
 	/**
 	 * Get @baseUrl attribute value (empty when not exist/null)
 	 * @return string
 	 */
-	protected function getAttrBaseUrl ()
-	{
+	protected function getAttrBaseUrl () {
 		return array_key_exists('@baseUrl', $this->config) && !empty($this->config['@baseUrl'])
 			? trim($this->config['@baseUrl'])
 			: '';
@@ -148,15 +293,31 @@ class ConfigParser
 	 * Get @src attribute value (empty when not exist/null)
 	 * @return string
 	 */
-	protected function getUrl ()
+	protected function getAttrSrc ()
 	{
-		$attrBaseUrl = $this->getAttrBaseUrl();
-		$attrSrc = $this->getAttrSrc();
+		return array_key_exists ( '@src', $this->config ) && !empty( $this->config['@src'] )
+			? trim ( $this->config['@src'] )
+			: '';
+	}
 
-		$baseUrl = empty($attrBaseUrl) ? $this->baseUrl : $attrBaseUrl;
-		$baseUrl .= empty($attrSrc) ? '/'.$this->_id : '/'.$attrSrc;
+	/**
+	 * Get @offlineSections attribute value (empty when not exist/null)
+	 *
+	 * @return array
+	 */
+	protected function getAttrOfflineSections ()
+	{
+		if ( !array_key_exists ( '@offlineSections', $this->config ) ) {
+			return [ ];
+		}
 
-		return $baseUrl;
+		$lst = $this->config['@offlineSections'];
+
+		if ( !is_array ( $lst ) ) {
+			throw new InvalidParamException ( 'Parameter @offlineSections must be an array' );
+		}
+
+		return $this->config['@offlineSections'];
 	}
 
 	/**
@@ -314,165 +475,5 @@ class ConfigParser
 		}
 
 		return rtrim($this->getUrl(), '/') . "/" . ltrim($fileName, '/');
-	}
-
-	/**
-	 * Get the parsed configuration
-	 * @return array|null Component config | null when skipped
-	 */
-	public function getParsed () {
-
-		if ( $this->getAttrOffline() === true && Cdn::isOnline() ) {
-			return null;
-		}
-
-		$config = [
-			'id' => $this->_id,
-			'baseUrl' => $this->getUrl(),
-			'sectionClass' => $this->_props['sectionClass'],
-			'fileClass' => $this->_props['fileClass'],
-			'sections' => self::$sections,
-		];
-
-		// Validate section names if given
-		if ( count($offlineSections = $this->getAttrOfflineSections()) ) {
-			foreach ( $offlineSections as $sect ) {
-				if (!in_array($sect, self::$sections )) {
-					throw new InvalidConfigException ( "Offline Section '{$sect}' name doesn't exist" );
-				}
-			}
-		}
-
-		foreach ( self::$sections as $section ) {
-
-			if ( in_array($section, $offlineSections ) && Cdn::isOnline () ) {
-				continue;
-			}
-
-			$config[$section] = $this->getFilesBySection($section);
-		}
-
-		$config['fileAttrs'] = $this->filesAttrs;
-
-		return $config;
-	}
-
-	/**
-	 * Replaces @component* tags from the components
-	 * @see ComponentConfigParser::replaceComponentTagsFromFileName()
-	 * @param array $components Pre Build Components data
-	 * @return array Post components object
-	 */
-	public static function touchComponentTags ( $components )
-	{
-		if ( !count($components ) ) {
-			return $components;
-		}
-
-		# $reListed['filesId'], $reListed['componentsUrl']
-		$reListed = self::listFilesByRoot($components);
-
-		foreach ( $components as $componentId => $sections ) {
-			foreach ( $sections as $sectionId => $data ) {
-				if ( !in_array($sectionId, self::$sections) || !count($data) ) {
-					continue;
-				}
-
-				foreach ($data as $fileId => $fileName ) {
-
-					$nFileName = !preg_match('/^@component([A-Za-z]+)/i', $fileName)
-						? $fileName
-						: self::replaceComponentTagsFromFileName($fileName, $reListed);
-
-					$components[$componentId][$sectionId][$fileId] = $nFileName; //str_replace('//', '/', $nFileName);
-				}
-			}
-		}
-
-		return $components;
-	}
-
-	/**
-	 * Replaces @component* tags (case insensitive) from given filename
-	 * Tags (starts with @component)<br>
-	 * <code>
-	 *    > componentUrl(ID)
-	 *    > componentFile(ID/SECTION/FILE_ID)
-	 * </code>
-	 * @param string $fileName File name replace from
-	 * @param array $indexed Indexed data object
-	 * @return array Replaced tags object
-	 */
-	protected static function replaceComponentTagsFromFileName ( $fileName, array $indexed ) {
-
-		$patterns = [
-
-			// tag: componentUrl(ID)
-			'/^@(?i)componentUrl(?-i)\(([^\)]+)\)(.+)$/' => function($match) use ($indexed) {
-
-				if ( !array_key_exists($match[1], $indexed['componentsUrl']) ) {
-					throw new InvalidConfigException ("Unknown CDN component id '{$match[1]}' given");
-				}
-
-				return $indexed['componentsUrl'][$match[1]]
-					. (substr($match[2],0,1) !== '/' ? '/'.$match[2] : $match[2]);
-			},
-
-			// tag: componentFile(ID/SECTION/FILE_ID)
-			'/^@(?i)componentFile(?-i)\(([^\)]+)\)$/' => function($match) use ($indexed) {
-
-				if ( !array_key_exists($match[1], $indexed['filesId']) ) {
-					throw new InvalidConfigException ("Unknown CDN component file id '{$match[1]}' given");
-				}
-
-				return $indexed['filesId'][$match[1]];
-			},
-		];
-
-		return preg_replace_callback_array($patterns, $fileName);
-	}
-
-	/**
-	 * Get the components files list<br>
-	 * Key=Value pair of [COMPONENT_ID/SECTION_ID/FILE_ID]=>FILE_URL
-	 * @param array $components Pre Build Components data
-	 * @return array
-	 */
-	protected static function listFilesByRoot ( $components )
-	{
-		if ( !count($components ) ) {
-			return $components;
-		}
-
-		$filesId = [];
-		$componentsUrl = [];
-
-		foreach ( $components as $componentId => $sections ) {
-
-			$componentsUrl[$componentId] = $sections['baseUrl'];
-
-			foreach ( $sections as $sectionId => $data ) {
-				if ( !in_array($sectionId, self::$sections) || !count($data) ) {
-					continue;
-				}
-
-				foreach ( $data as $fileId => $fileName ) {
-
-					if ( strstr($fileId, '*') !== false ) {
-						continue;
-					}
-
-					// File unique id
-					$uid = "{$componentId}/{$sectionId}/".$fileId;
-
-					$filesId[$uid] = $fileName;
-				}
-			}
-		}
-
-		return [
-			'filesId' => $filesId,
-			'componentsUrl' => $componentsUrl
-		];
 	}
 }

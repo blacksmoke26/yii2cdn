@@ -24,6 +24,7 @@ use \yii\base\UnknownPropertyException;
  */
 class Section
 {
+
 	/**
 	 * Section base Url
 	 * @var string

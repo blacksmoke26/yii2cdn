@@ -24,6 +24,7 @@ use yii\base\UnknownPropertyException;
  */
 class Component
 {
+
 	/**
 	 * Component ID
 	 * @var string
@@ -106,6 +107,23 @@ class Component
 	}
 
 	/**
+	 * Get a javaScript files list
+	 * @param boolean $filesOnly (optional) True will return files url only (default: false)
+	 * @param boolean $unique (optional) True will remove duplicate elements (default: true)
+	 * @return array List of js section files
+	 */
+	public function getJsFiles ( $asUrl = false, $unique = true )
+	{
+		$files = $this->getSection ( 'css' )->getFiles ( true, $unique );
+
+		if ( !$asUrl ) {
+			return $files;
+		}
+
+		return array_values ( $files );
+	}
+
+	/**
 	 * Get a section(s) object by ID
 	 * @param string|array Section name|List of sections name
 	 * @param boolean $throwException (optional) True will throw exception when section name not found (default: true)
@@ -114,7 +132,6 @@ class Component
 	 * @return Section|array|null Section | Sections List | Null when not found
 	 */
 	public function getSection ( $name, $throwException = true ) {
-
 		$sections = $name;
 
 		if ( !is_array($name) ) {
@@ -143,7 +160,6 @@ class Component
 	 * @return True on exist | False when not found
 	 */
 	public function sectionExists ( $name, $throwException = true ) {
-
 		if ( empty($name) ) {
 			if ( $throwException ) {
 				throw new InvalidValueException ('Section name cannot be empty');
@@ -162,22 +178,6 @@ class Component
 		}
 
 		return true;
-	}
-
-	/**
-	 * Get a javaScript files list
-	 * @param boolean $filesOnly (optional) True will return files url only (default: false)
-	 * @param boolean $unique (optional) True will remove duplicate elements (default: true)
-	 * @return array List of js section files
-	 */
-	public function getJsFiles ( $asUrl = false, $unique = true ) {
-		$files = $this->getSection('css')->getFiles(true, $unique);
-
-		if ( !$asUrl ) {
-			return $files;
-		}
-
-		return array_values($files);
 	}
 
 	/**

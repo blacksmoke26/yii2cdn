@@ -28,23 +28,15 @@ defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
 class Cdn extends \yii\base\Component {
 
 	/**
-	 * Components registered under cdn
-	 * @var array
-	 */
-	protected $_regComponents = [];
-
-	/**
 	 * Base url to cdn directory
 	 * @var string
 	 */
 	public $baseUrl = null;
-
 	/**
 	 * base path to cdn directory
 	 * @var string
 	 */
 	public $basePath = null;
-
 	/**
 	 * Custom url aliases, replaces with @alias(*) in files url
 	 * Usage:
@@ -52,49 +44,42 @@ class Cdn extends \yii\base\Component {
 	 * @var array
 	 */
 	public $aliases = [];
-
 	/**
 	 * CDN component class
 	 * default: \yii2cdn\Component
 	 * @var string
 	 */
 	public $componentClass = '\yii2cdn\Component';
-
 	/**
 	 * CDN components configuration parser class
 	 * default: \yii2cdn\ComponentConfigParser
 	 * @var string
 	 */
 	public $configParserClass = '\yii2cdn\ConfigParser';
-
 	/**
 	 * CDN component section class
 	 * default: \yii2cdn\ComponentSection
 	 * @var string
 	 */
 	public $sectionClass = '\yii2cdn\Section';
-
 	/**
 	 * CDN Configuration File Class
 	 * default: \yii2cdn\ConfigFile
 	 * @var string
 	 */
 	public $configFileClass = '\yii2cdn\ConfigFile';
-
 	/**
 	 * CDN component section file class
 	 * default: \yii2cdn\SectionFile
 	 * @var string
 	 */
 	public $fileClass = '\yii2cdn\File';
-
 	/**
 	 * CDN component configuration loader class
 	 * default: \yii2cdn\ConfigLoader
 	 * @var string
 	 */
 	public $configLoaderClass = '\yii2cdn\ConfigLoader';
-
 	/**
 	 * CDN components configuration files list
 	 * Usage:
@@ -105,37 +90,49 @@ class Cdn extends \yii\base\Component {
 	 * @var array
 	 */
 	public $configs = [];
-
 	/**
 	 * CDN components configuration
 	 * @var array
 	 */
 	public $components = [];
-
 	/**
 	 * Sections name list
 	 * default: (<code>css</code>, <code>js</code>)
 	 * @var array
 	 */
 	public $sections = ['js', 'css'];
-
-	/**
-	 * Components indexed list
-	 * @var array
-	 */
-	protected $buildIncludes = [];
-
 	/**
 	 * Cache Key for caching build cdn configurations to load fast
 	 * @var string
 	 */
 	public $cacheKey = null;
-
 	/**
 	 * Enable storing components configuration in cache
 	 * @var boolean
 	 */
 	public $enableCaching = false;
+	/**
+	 * Components registered under cdn
+	 *
+	 * @var array
+	 */
+	protected $_regComponents = [ ];
+	/**
+	 * Components indexed list
+	 *
+	 * @var array
+	 */
+	protected $buildIncludes = [ ];
+
+	/**
+	 * Check that Mode Live or Offline
+	 *
+	 * @return bool
+	 */
+	public static function isOnline ()
+	{
+		return !defined ( 'YII2CDN_OFFLINE' ) ? true : !YII2CDN_OFFLINE;
+	}
 
 	/**
 	 * Component intializer
@@ -156,13 +153,6 @@ class Cdn extends \yii\base\Component {
 
 		// Build components
 		$this->buildComponentsCache();
-	}
-	/**
-	 * Check that Mode Live or Offline
-	 * @return bool
-	 */
-	public static function isOnline () {
-		return !defined( 'YII2CDN_OFFLINE' ) ? true : !YII2CDN_OFFLINE;
 	}
 
 	/**
@@ -204,6 +194,22 @@ class Cdn extends \yii\base\Component {
 	}
 
 	/**
+	 * Import components from configuration array
+	 *
+	 * @param array $config Components configuration
+	 */
+	protected function loadComponents ( array $config )
+	{
+		/** @var ConfigFile $configFile */
+		$configFile = $this->getFileConfigObject ( null );
+
+		$this->_regComponents = ArrayHelper::merge (
+			$this->_regComponents,
+			$configFile->get ( ( $config ) )
+		);
+	}
+
+	/**
 	 * Get a ConfigFile Object
 	 * @param string $file
 	 * @return ConfigFile
@@ -222,20 +228,6 @@ class Cdn extends \yii\base\Component {
 			'aliases' => $this->aliases,
 			'sections' => $this->sections
 		]]);
-	}
-
-	/**
-	 * Import components from configuration array
-	 * @param array $config Components configuration
-	 */
-	protected function loadComponents ( array $config ) {
-		/** @var ConfigFile $configFile */
-		$configFile = $this->getFileConfigObject( null );
-
-		$this->_regComponents = ArrayHelper::merge(
-			$this->_regComponents,
-			$configFile->get( ($config) )
-		);
 	}
 
 	/**
@@ -261,13 +253,37 @@ class Cdn extends \yii\base\Component {
 	}
 
 	/**
+	 * Get the file by root
+	 * Root example : component-id/section
+	 *
+	 * @see Component::get()
+	 * @see Section::getSection()
+	 * @param string $root Root to file
+	 * @param bool $throwException True will throw exception (default: true)
+	 * @throws \yii\base\UnknownPropertyException When unknown component id given
+	 * @throws \yii\base\InvalidParamException When null given as section
+	 * @throws \yii\base\UnknownPropertyException When section name not found
+	 * @return \yii2cdn\Section Section Object
+	 */
+	public function getSectionByRoot ( $root, $throwException = true )
+	{
+		// validate the root
+		if ( !is_string ( $root ) || substr_count ( $root, '/' ) != 1 ) {
+			throw new InvalidParamException ( "Invalid section root '{$root}' given" );
+		}
+
+		list ( $componentId, $sectionId ) = explode ( '/', $root );
+
+		return $this->get ( $componentId, $throwException )->getSection ( $sectionId, $throwException );
+	}
+
+	/**
 	 * Get cdn component by ID
 	 * @see Cdn::exists()
 	 * @param string $id Component ID
 	 * @return Component|null Component Object
 	 */
-	public function get ( $id, $throwException = true )
-	{
+	public function get ( $id, $throwException = true ) {
 		if ( !$this->exists($id, $throwException) ) {
 			return null;
 		}
@@ -282,8 +298,7 @@ class Cdn extends \yii\base\Component {
 	 * @throws \yii\base\UnknownPropertyException When unknown component id given
 	 * @return boolean True when exist, False when undefined
 	 */
-	public function exists ( $id, $throwException = true )
-	{
+	public function exists ( $id, $throwException = true ) {
 		if ( !array_key_exists($id, $this->_regComponents) ) {
 			if ( $throwException ) {
 				throw new UnknownPropertyException ("Unknown cdn component '{$id}'");
@@ -293,29 +308,6 @@ class Cdn extends \yii\base\Component {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Get the file by root
-	 * Root example : component-id/section
-	 * @see Component::get()
-	 * @see Section::getSection()
-	 * @param string $root Root to file
-	 * @param bool $throwException True will throw exception (default: true)
-	 * @throws \yii\base\UnknownPropertyException When unknown component id given
-	 * @throws \yii\base\InvalidParamException When null given as section
-	 * @throws \yii\base\UnknownPropertyException When section name not found
-	 * @return \yii2cdn\Section Section Object
-	 */
-	public function getSectionByRoot ( $root, $throwException = true ) {
-		// validate the root
-		if ( !is_string($root) || substr_count($root, '/') != 1 ) {
-			throw new InvalidParamException ("Invalid section root '{$root}' given");
-		}
-
-		list ( $componentId, $sectionId ) = explode( '/', $root );
-
-		return $this->get($componentId, $throwException)->getSection($sectionId, $throwException);
 	}
 
 	/**
