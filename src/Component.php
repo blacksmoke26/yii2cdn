@@ -22,8 +22,7 @@ use yii\base\UnknownPropertyException;
  * @access public
  * @version 0.1
  */
-class Component
-{
+class Component {
 
 	/**
 	 * Component ID
@@ -55,8 +54,7 @@ class Component
 	 * @param string $id Component ID
 	 * @param array $config Configuration
 	 */
-	public function __construct ( array $config )
-	{
+	public function __construct ( array $config ) {
 		$this->baseUrl = $config['baseUrl'];
 		$this->id = $config['id'];
 		$this->sectionsName = $config['sections'];
@@ -112,8 +110,7 @@ class Component
 	 * @param boolean $unique (optional) True will remove duplicate elements (default: true)
 	 * @return array List of js section files
 	 */
-	public function getJsFiles ( $asUrl = false, $unique = true )
-	{
+	public function getJsFiles ( $asUrl = false, $unique = true ) {
 		$files = $this->getSection ( 'css' )->getFiles ( true, $unique );
 
 		if ( !$asUrl ) {

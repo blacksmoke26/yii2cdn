@@ -32,11 +32,13 @@ class Cdn extends \yii\base\Component {
 	 * @var string
 	 */
 	public $baseUrl = null;
+
 	/**
 	 * base path to cdn directory
 	 * @var string
 	 */
 	public $basePath = null;
+
 	/**
 	 * Custom url aliases, replaces with @alias(*) in files url
 	 * Usage:
@@ -44,42 +46,49 @@ class Cdn extends \yii\base\Component {
 	 * @var array
 	 */
 	public $aliases = [];
+
 	/**
 	 * CDN component class
 	 * default: \yii2cdn\Component
 	 * @var string
 	 */
 	public $componentClass = '\yii2cdn\Component';
+
 	/**
 	 * CDN components configuration parser class
 	 * default: \yii2cdn\ComponentConfigParser
 	 * @var string
 	 */
 	public $configParserClass = '\yii2cdn\ConfigParser';
+
 	/**
 	 * CDN component section class
 	 * default: \yii2cdn\ComponentSection
 	 * @var string
 	 */
 	public $sectionClass = '\yii2cdn\Section';
+
 	/**
 	 * CDN Configuration File Class
 	 * default: \yii2cdn\ConfigFile
 	 * @var string
 	 */
 	public $configFileClass = '\yii2cdn\ConfigFile';
+
 	/**
 	 * CDN component section file class
 	 * default: \yii2cdn\SectionFile
 	 * @var string
 	 */
 	public $fileClass = '\yii2cdn\File';
+
 	/**
 	 * CDN component configuration loader class
 	 * default: \yii2cdn\ConfigLoader
 	 * @var string
 	 */
 	public $configLoaderClass = '\yii2cdn\ConfigLoader';
+
 	/**
 	 * CDN components configuration files list
 	 * Usage:
@@ -90,47 +99,52 @@ class Cdn extends \yii\base\Component {
 	 * @var array
 	 */
 	public $configs = [];
+
 	/**
 	 * CDN components configuration
 	 * @var array
 	 */
 	public $components = [];
+
 	/**
 	 * Sections name list
 	 * default: (<code>css</code>, <code>js</code>)
 	 * @var array
 	 */
 	public $sections = ['js', 'css'];
+
 	/**
 	 * Cache Key for caching build cdn configurations to load fast
 	 * @var string
 	 */
 	public $cacheKey = null;
+
 	/**
 	 * Enable storing components configuration in cache
 	 * @var boolean
 	 */
 	public $enableCaching = false;
+
 	/**
 	 * Components registered under cdn
 	 *
 	 * @var array
 	 */
-	protected $_regComponents = [ ];
+	protected $_regComponents = [];
+
 	/**
 	 * Components indexed list
 	 *
 	 * @var array
 	 */
-	protected $buildIncludes = [ ];
+	protected $buildIncludes = [];
 
 	/**
 	 * Check that Mode Live or Offline
 	 *
 	 * @return bool
 	 */
-	public static function isOnline ()
-	{
+	public static function isOnline () {
 		return !defined ( 'YII2CDN_OFFLINE' ) ? true : !YII2CDN_OFFLINE;
 	}
 
@@ -138,7 +152,7 @@ class Cdn extends \yii\base\Component {
 	 * Component intializer
 	 * @throws \yii\base\InvalidConfigException when property is empty
 	 */
-	public function init() {
+	public function init () {
 		parent::init();
 
 		foreach ( ['baseUrl', 'basePath'] as $prop ) {
@@ -159,7 +173,6 @@ class Cdn extends \yii\base\Component {
 	 * Build a components list
 	 */
 	protected function buildComponentsCache () {
-
 		if ( $this->enableCaching ) {
 
 			$cached = \Yii::$app->cache->get ( $this->cacheKey );
@@ -198,8 +211,7 @@ class Cdn extends \yii\base\Component {
 	 *
 	 * @param array $config Components configuration
 	 */
-	protected function loadComponents ( array $config )
-	{
+	protected function loadComponents ( array $config ) {
 		/** @var ConfigFile $configFile */
 		$configFile = $this->getFileConfigObject ( null );
 
@@ -265,8 +277,7 @@ class Cdn extends \yii\base\Component {
 	 * @throws \yii\base\UnknownPropertyException When section name not found
 	 * @return \yii2cdn\Section Section Object
 	 */
-	public function getSectionByRoot ( $root, $throwException = true )
-	{
+	public function getSectionByRoot ( $root, $throwException = true ) {
 		// validate the root
 		if ( !is_string ( $root ) || substr_count ( $root, '/' ) != 1 ) {
 			throw new InvalidParamException ( "Invalid section root '{$root}' given" );

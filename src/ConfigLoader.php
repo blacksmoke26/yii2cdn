@@ -46,7 +46,6 @@ class ConfigLoader {
 	 * @return ConfigLoader
 	 */
 	protected function appendWithFromFile ( $path ) {
-
 		$path = \Yii::getAlias($path);
 
 		if ( !is_file($path) ) {
@@ -77,7 +76,6 @@ class ConfigLoader {
 	 * @return ConfigLoader
 	 */
 	public function offline ( $path ) {
-
 		if ( !Cdn::isOnline() ) {
 			return $this;
 		}

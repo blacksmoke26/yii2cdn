@@ -88,8 +88,7 @@ class File {
 	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Section|string Section object | Section name
 	 */
-	public function getSection ( $asId, $property = 'cdn' )
-	{
+	public function getSection ( $asId, $property = 'cdn' ) {
 		return $asId ? $this->section : $this->getComponent ( false, $property )->getSection ( $this->section );
 	}
 
@@ -100,8 +99,7 @@ class File {
 	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Component|string Component object | Component id
 	 */
-	public function getComponent ( $asId, $property = 'cdn' )
-	{
+	public function getComponent ( $asId, $property = 'cdn' ) {
 		return $asId ? $this->component : \Yii::$app->cdn->get ( $property )->get ( $this->component );
 	}
 
@@ -152,8 +150,7 @@ class File {
 	 *
 	 * @return string
 	 */
-	public function getId ()
-	{
+	public function getId () {
 		return $this->fileId;
 	}
 

@@ -22,23 +22,26 @@ use yii\base\InvalidParamException;
  * @access public
  * @version 0.1
  */
-class ConfigParser
-{
+class ConfigParser {
+
 	/**
 	 * List of sections name
 	 * @var array
 	 */
-	protected static $sections = [ ];
+	protected static $sections = [];
+
 	/**
 	 * Component ID
 	 * @var string
 	 */
 	protected $_id;
+
 	/**
 	 * CDN Base URL
 	 * @var string
 	 */
 	protected $baseUrl;
+
 	/**
 	 * Component Configuration
 	 * @var array
@@ -69,7 +72,6 @@ class ConfigParser
 	 */
 	protected $_props = [];
 
-
 	/**
 	 * Predefined file attributes
 	 * @var array
@@ -96,8 +98,7 @@ class ConfigParser
 	 * @param array $components Pre Build Components data
 	 * @return array Post components object
 	 */
-	public static function touchComponentTags ( $components )
-	{
+	public static function touchComponentTags ( $components ) {
 		if ( !count ( $components ) ) {
 			return $components;
 		}
@@ -131,8 +132,7 @@ class ConfigParser
 	 * @param array $components Pre Build Components data
 	 * @return array
 	 */
-	protected static function listFilesByRoot ( $components )
-	{
+	protected static function listFilesByRoot ( $components ) {
 		if ( !count ( $components ) ) {
 			return $components;
 		}
@@ -181,9 +181,7 @@ class ConfigParser
 	 * @param array $indexed Indexed data object
 	 * @return array Replaced tags object
 	 */
-	protected static function replaceComponentTagsFromFileName ( $fileName, array $indexed )
-	{
-
+	protected static function replaceComponentTagsFromFileName ( $fileName, array $indexed ) {
 		$patterns = [
 
 			// tag: componentUrl(ID)
@@ -216,9 +214,7 @@ class ConfigParser
 	 *
 	 * @return array|null Component config | null when skipped
 	 */
-	public function getParsed ()
-	{
-
+	public function getParsed () {
 		if ( $this->getAttrOffline () === true && Cdn::isOnline () ) {
 			return null;
 		}
@@ -268,8 +264,7 @@ class ConfigParser
 	 * Get @src attribute value (empty when not exist/null)
 	 * @return string
 	 */
-	protected function getUrl ()
-	{
+	protected function getUrl () {
 		$attrBaseUrl = $this->getAttrBaseUrl ();
 		$attrSrc = $this->getAttrSrc ();
 
@@ -293,8 +288,7 @@ class ConfigParser
 	 * Get @src attribute value (empty when not exist/null)
 	 * @return string
 	 */
-	protected function getAttrSrc ()
-	{
+	protected function getAttrSrc () {
 		return array_key_exists ( '@src', $this->config ) && !empty( $this->config['@src'] )
 			? trim ( $this->config['@src'] )
 			: '';
@@ -305,8 +299,7 @@ class ConfigParser
 	 *
 	 * @return array
 	 */
-	protected function getAttrOfflineSections ()
-	{
+	protected function getAttrOfflineSections () {
 		if ( !array_key_exists ( '@offlineSections', $this->config ) ) {
 			return [ ];
 		}
@@ -358,7 +351,6 @@ class ConfigParser
 	 * @return array|null Key=>Value pair (ID=>FILENAME) / File skipped
 	 */
 	protected function getFileName ( $file, $type ) {
-
 		if ( !is_array($file) || is_string($file) ) {
 			return [  uniqid('*') => $this->replaceFileNameTags($file) ];
 		}

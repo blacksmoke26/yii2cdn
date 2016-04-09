@@ -22,8 +22,7 @@ use \yii\base\UnknownPropertyException;
  * @access public
  * @version 0.1
  */
-class Section
-{
+class Section {
 
 	/**
 	 * Section base Url
@@ -118,8 +117,7 @@ class Section
 	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Component|string Component object | Component ID
 	 */
-	public function getComponent ( $asId = false, $property = 'cdn' )
-	{
+	public function getComponent ( $asId = false, $property = 'cdn' ) {
 		return $asId ? $this->componentId : \Yii::$app->cdn->get ( $property )->get ( $this->componentId );
 	}
 
@@ -162,8 +160,7 @@ class Section
 	 * @throws \yii\base\InvalidConfigException When option 'includeOnly' not an array
 	 * @return File[]|array List of files | List of sections and their files [SECTION=>FILES_LIST][]
 	 */
-	public function callback ( callable $callback, array $options = [ ], $throwException = true )
-	{
+	public function callback ( callable $callback, array $options = [ ], $throwException = true ) {
 		if ( !is_callable($callback) ) {
 			throw new \yii\base\InvalidParamException("Option 'callback' must be a function");
 		}
