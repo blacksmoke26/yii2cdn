@@ -3,7 +3,7 @@
 [![GitHub forks](https://img.shields.io/github/forks/blacksmoke26/yii2cdn.svg)](https://github.com/blacksmoke26/yii2cdn/network)
 [![GitHub stars](https://img.shields.io/github/stars/blacksmoke26/yii2cdn.svg)](https://github.com/blacksmoke26/yii2cdn/stargazers)
 [![Docs](https://img.shields.io/badge/docs-2%25-yellow.svg)](https://github.com/blacksmoke26/yii2cdn/wiki)
-[![Twitter](https://img.shields.io/twitter/url/https/github.com/blacksmoke26/yii2cdn.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=%5Bobject%20Object%5D)
+[![Twitter](https://img.shields.io/twitter/url/https/github.com/blacksmoke26/yii2cdn.svg?style=social)](https://twitter.com/intent/tweet?text=Yii2cdn+extension:&url=https://github.com/blacksmoke26/yii2cdn)
 
 # yii2cdn
 
