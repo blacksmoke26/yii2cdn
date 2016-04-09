@@ -345,8 +345,10 @@ class Section {
 
 				/** @var File $file */
 				$file =  \Yii::createObject($this->fileClass, [
-					'fileUrl' => $itr->current(),
-					'fileId' => $fileId
+					[
+						'fileUrl' => $itr->current(),
+						'fileId' => $fileId
+					]
 				]);
 			}
 
