@@ -21,7 +21,7 @@
             "email": "mj.atari@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "config": {
         "process-timeout": 1800
     },
