@@ -64,7 +64,6 @@ class File {
 	 * @param array $config Configuration object
 	 */
 	public function __construct ( array $config ) {
-		
 		if ( !count( $config ) ) {
 			return;
 		}
@@ -72,14 +71,6 @@ class File {
 		foreach ($config as $prop => $value ) {
 			$this->$prop = $value;
 		}
-	}
-
-	/**
-	 * Get current file id
-	 * @return string
-	 */
-	public function getId () {
-		return $this->fileId;
 	}
 
 	/**
@@ -92,20 +83,26 @@ class File {
 
 	/**
 	 * Get file section or it's id
+	 *
 	 * @param boolean $asId (optional) True will return section name (default: false)
+	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Section|string Section object | Section name
 	 */
-	public function getSection ( $asId ) {
-		return $asId ? $this->section : $this->getComponent()->getSection($this->section);
+	public function getSection ( $asId, $property = 'cdn' )
+	{
+		return $asId ? $this->section : $this->getComponent ( false, $property )->getSection ( $this->section );
 	}
 
 	/**
 	 * Get current file component or it's id
+	 *
 	 * @param boolean $asId (optional) True will return component id (default: false)
+	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Component|string Component object | Component id
 	 */
-	public function getComponent ( $asId ) {
-		return $asId ? $this->component : \Yii::$app->cdn->get($this->section);
+	public function getComponent ( $asId, $property = 'cdn' )
+	{
+		return $asId ? $this->component : \Yii::$app->cdn->get ( $property )->get ( $this->component );
 	}
 
 	/**
@@ -123,13 +120,12 @@ class File {
 	 * @return mixed|null Attribute value | null on empty
 	 */
 	public function getAttr ( $name, $throwException = true ) {
-
 		if ( isset($this->attributes[$name]) ) {
 			return $this->attributes[$name];
 		}
 
 		if ( $throwException ) {
-			throw new UnknownPropertyException ("Unknown file attribute '{$name}' given");
+			throw new UnknownPropertyException ( "Unknown file attribute '{$name}' given" );
 		}
 
 		return null;
@@ -145,11 +141,20 @@ class File {
 	 * @param string $key the key that identifies the CSS script file. If null, it will use
 	 */
 	public function registerAsCssFile ( array $options = [], $key = null ) {
-
 		$options = !count($options) ? $this->options : $options;
 		$key = is_null($key) ? $this->getId() : $key;
 
 		\Yii::$app->controller->view->registerCssFile( $this->fileUrl, $options, $key );
+	}
+
+	/**
+	 * Get current file id
+	 *
+	 * @return string
+	 */
+	public function getId ()
+	{
+		return $this->fileId;
 	}
 
 	/**
@@ -170,7 +175,6 @@ class File {
 	 * will overwrite the former.
 	 */
 	public function registerAsJsFile ( array $options = [], $key = null ) {
-
 		$options = !count($options) ? $this->options : $options;
 		$key = is_null($key) ? $this->getId() : $key;
 

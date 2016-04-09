@@ -13,7 +13,6 @@ use yii\base\InvalidParamException;
 use \yii\base\InvalidConfigException;
 use \yii\base\UnknownPropertyException;
 
-
 /**
  * Yii2 Component Section File object
  *
@@ -69,6 +68,7 @@ class Section
 		if ( !count($config['files']) ) {
 			return;
 		}
+
 		foreach ( $config['files'] as $id => $url ) {
 			$options = $_attributes = [];
 
@@ -112,11 +112,14 @@ class Section
 
 	/**
 	 * Get section's component or id
+	 * 
 	 * @param boolean $asId (optional) True will return component id (default: false)
+	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Component|string Component object | Component ID
 	 */
-	public function getComponent ( $asId = false ) {
-		return $asId ? $this->componentId : \Yii::$app->cdn->get($this->componentId);
+	public function getComponent ( $asId = false, $property = 'cdn' )
+	{
+		return $asId ? $this->componentId : \Yii::$app->cdn->get ( $property )->get ( $this->componentId );
 	}
 
 	/**
@@ -158,7 +161,7 @@ class Section
 	 * @throws \yii\base\InvalidConfigException When option 'includeOnly' not an array
 	 * @return File[]|array List of files | List of sections and their files [SECTION=>FILES_LIST][]
 	 */
-	public function callback ( callable $callback, array $options = [], $throwException = true )
+	public function callback ( callable $callback, array $options = [ ], $throwException = true )
 	{
 		if ( !is_callable($callback) ) {
 			throw new \yii\base\InvalidParamException("Option 'callback' must be a function");
@@ -249,7 +252,6 @@ class Section
 	 * @return File[]|array List of section object/[key=>value] pair of section files
 	 */
 	public function getFiles ( $asArray = false, $unique = false ) {
-
 		if ( !$asArray ) {
 			return $this->files;
 		}
@@ -283,7 +285,7 @@ class Section
 		if ( !array_key_exists($id, $this->files) ) {
 
 			if ( $throwException ) {
-				throw new UnknownPropertyException ("Unknown file id '{$id}' given");
+				throw new UnknownPropertyException ( "Unknown file id '{$id}' given" );
 			}
 
 			return null;
