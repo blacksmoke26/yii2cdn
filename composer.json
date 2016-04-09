@@ -12,13 +12,15 @@
 		"issues" : "https://github.com/blacksmoke26/yii2cdn/issues"
 	},
     "require": {
-        "php": ">=5.4.0",
-        "yiisoft/yii2": ">=2.0.3"
+        "php": "~5.4.0",
+        "yiisoft/yii2": "~2.0.3"
     },
     "authors": [
         {
             "name": "Junaid Atari",
-            "email": "mj.atari@gmail.com"
+            "email": "mj.atari@gmail.com",
+            "homepage": "http://junaidatari.com",
+            "role": "Lead Developer"
         }
     ],
     "minimum-stability": "stable",
