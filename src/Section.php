@@ -122,16 +122,33 @@ class Section {
 	}
 
 	/**
-	 * Get section base Url
-	 * @param string $str (optional) Append string at end of url (/ is optional)
-	 * @return string
+	 * Get the section's base Url
+	 *
+	 * @param null|string|array $str (optional) Append string at end of url (/ is optional) | List of strings to append url with (default: null)
+	 * @return string|array
 	 */
 	public function getUrl ( $str = null ) {
-		if ( empty($str) ) {
+		if ( empty( $str) ) {
 			return $this->baseUrl;
 		}
 
-		return $this->baseUrl . (substr($str,0,1) !== '/' ? '/'.$str : $str);
+		if ( !is_string ( $str) && !is_array($str) ) {
+			throw new InvalidParamException ("Parameter {$str} should be string or an array.");
+		}
+
+		$list = is_string ( $str)
+			? [$str]
+			: $str;
+
+		$newList = [];
+
+		foreach ( $list as $itm ) {
+			$newList[] = $this->baseUrl . (substr ( $itm,0,1) !== '/' ? '/' . $itm : $itm);
+		}
+
+		return count($newList) === 1
+			? array_shift($newList)
+			: $newList;
 	}
 
 	/**
