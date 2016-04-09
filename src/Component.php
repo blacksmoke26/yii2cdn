@@ -123,7 +123,7 @@ class Component {
 
 	/**
 	 * Get a javaScript files list
-	 * @param boolean $filesOnly (optional) True will return files url only (default: false)
+	 * @param boolean $asUrl (optional) True will return files url only (default: false)
 	 * @param boolean $unique (optional) True will remove duplicate elements (default: true)
 	 * @return array List of js section files
 	 */
@@ -196,7 +196,7 @@ class Component {
 
 	/**
 	 * Get style files list
-	 * @param boolean $filesOnly (optional) True will return files url only (default: false)
+	 * @param boolean $asUrl (optional) True will return files url only (default: false)
 	 * @param boolean $unique (optional) True will remove duplicate elements (default: true)
 	 * @return array List of css section files
 	 */
