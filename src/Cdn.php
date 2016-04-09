@@ -26,11 +26,7 @@ defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
  * @version 0.1
  */
 class Cdn extends \yii\base\Component {
-
-	const MODE_OFFLINE = 'offline';
-
-	const MODE_ONLINE = 'online';
-
+	
 	/**
 	 * Base url to cdn directory
 	 * @var string
