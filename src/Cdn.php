@@ -26,7 +26,7 @@ defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
  * @version 0.1
  */
 class Cdn extends \yii\base\Component {
-	
+
 	/**
 	 * Base url to cdn directory
 	 * @var string
@@ -114,7 +114,7 @@ class Cdn extends \yii\base\Component {
 	public $sections = ['js', 'css'];
 
 	/**
-	 * Cache Key for caching build cdn configurations to load fast
+	 * Cache Key for caching built components configuration to load fast
 	 * @var string
 	 */
 	public $cacheKey = null;
@@ -131,13 +131,6 @@ class Cdn extends \yii\base\Component {
 	 * @var array
 	 */
 	protected $_regComponents = [];
-
-	/**
-	 * Components indexed list
-	 *
-	 * @var array
-	 */
-	protected $buildIncludes = [];
 
 	/**
 	 * Component intializer
@@ -161,12 +154,190 @@ class Cdn extends \yii\base\Component {
 	}
 
 	/**
+	 * Get a ConfigFile Object
+	 * @param string $file
+	 * @return ConfigFile
+	 */
+	protected function getFileConfigObject ( $file = null ) {
+		/** @var ConfigFile $fileConfig */
+		return \Yii::createObject($this->configFileClass, [ [
+			'path' => $file,
+			'componentClass' => $this->componentClass,
+			'configParserClass' => $this->configParserClass,
+			'configLoaderClass' => $this->configLoaderClass,
+			'fileClass' => $this->fileClass,
+			'sectionClass' => $this->sectionClass,
+			'basePath' => $this->basePath,
+			'baseUrl' => $this->baseUrl,
+			'aliases' => $this->aliases,
+			'sections' => $this->sections
+		]]);
+	}
+
+	/**
+	 * Import components from configuration array
+	 *
+	 * @param array $config Components configuration
+	 */
+	protected function loadComponents ( array $config ) {
+		/** @var ConfigFile $configFile */
+		$configFile = $this->getFileConfigObject ( null );
+
+		$this->_regComponents = ArrayHelper::merge (
+			$this->_regComponents,
+			$configFile->get ( ( $config ) )
+		);
+	}
+
+	/**
+	 * Import components from configuration file
+	 * @param string $path Components configuration file path
+	 */
+	protected function loadComponentsFile ( $path ) {
+		/** @var ConfigFile $configFile */
+		$configFile = $this->getFileConfigObject( $path );
+
+		$this->_regComponents = ArrayHelper::merge(
+			$this->_regComponents,
+			$configFile->get()
+		);
+	}
+
+	/**
+	 * Build a components list
+	 */
+	protected function buildComponentsCache () {
+		if ( $this->enableCaching ) {
+
+			$cached = \Yii::$app->cache->get ( $this->cacheKey );
+
+			if ( $cached !== false ) {
+				$this->_regComponents = $cached;
+				return;
+			}
+		}
+
+		// @property `components` : load CDN components config
+		if ( is_array($this->components) && !empty($this->components) ) {
+			$this->loadComponents($this->components);
+		}
+
+		// @property `configs` : load CDN components config files
+		if ( is_array($this->configs) && !empty($this->configs) ) {
+
+			foreach ( $this->configs as $cfg ) {
+
+				if ( empty($cfg)) {
+					continue;
+				}
+
+				$this->loadComponentsFile($cfg);
+			}
+		}
+
+		if ( $this->enableCaching ) {
+			\Yii::$app->cache->set($this->cacheKey, $this->_regComponents);
+		}
+	}
+
+	/**
+	 * Remove the cache and rebuild components list
+	 */
+	public function refresh () {
+		\Yii::$app->cache->delete( $this->cacheKey );
+		$this->buildComponentsCache();
+	}
+
+	/**
 	 * Check that Mode Live or Offline
 	 *
 	 * @return bool
 	 */
 	public static function isOnline () {
 		return !defined ( 'YII2CDN_OFFLINE' ) ? true : !YII2CDN_OFFLINE;
+	}
+
+	/**
+	 * Get cdn component by ID
+	 * @see Cdn::exists()
+	 * @param string $id Component ID
+	 * @return Component|null Component Object
+	 */
+	public function get ( $id, $throwException = true ) {
+		if ( !$this->exists($id, $throwException) ) {
+			return null;
+		}
+
+		return $this->_regComponents[$id];
+	}
+
+	/**
+	 * Check that cdn component exists
+	 * @param string $id Component ID
+	 * @param boolean $throwException (optional) Throw exception when unknown component id given (default: false)
+	 * @throws \yii\base\UnknownPropertyException When unknown component id given
+	 * @return boolean True when exist, False when undefined
+	 */
+	public function exists ( $id, $throwException = true ) {
+		if ( !array_key_exists($id, $this->_regComponents) ) {
+			if ( $throwException ) {
+				throw new UnknownPropertyException ("Unknown cdn component '{$id}'");
+			} else {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get the file by root
+	 * Root example : component-id/section
+	 *
+	 * @see Component::get()
+	 * @see Section::getSection()
+	 * @param string $root Root to file
+	 * @param bool $throwException True will throw exception (default: true)
+	 * @throws \yii\base\UnknownPropertyException When unknown component id given
+	 * @throws \yii\base\InvalidParamException When null given as section
+	 * @throws \yii\base\UnknownPropertyException When section name not found
+	 * @return \yii2cdn\Section Section Object
+	 */
+	public function getSectionByRoot ( $root, $throwException = true ) {
+		// validate the root
+		if ( !is_string ( $root ) || substr_count ( $root, '/' ) != 1 ) {
+			throw new InvalidParamException ( "Invalid section root '{$root}' given" );
+		}
+
+		list ( $componentId, $sectionId ) = explode ( '/', $root );
+
+		return $this->get ( $componentId, $throwException )->getSection ( $sectionId, $throwException );
+	}
+
+	/**
+	 * Get the file by root
+	 * Root example : component-id/section/file-id
+	 * @see Component::get()
+	 * @see Section::getSection()
+	 * @see Section::getFileById()
+	 * @param string $root Root to file
+	 * @param bool $asUrl True will return file url instead of object (default: false)
+	 * @param bool $throwException True will throw exception (default: true)
+	 * @throws \yii\base\UnknownPropertyException When unknown component id given
+	 * @throws \yii\base\InvalidParamException When null given as section
+	 * @throws \yii\base\UnknownPropertyException When section name not found
+	 * @throws \yii\base\UnknownPropertyException When file id not found
+	 * @return \yii2cdn\File|string|null Section file | File Url | Null when not found
+	 */
+	public function getFileByRoot ( $root, $asUrl = false, $throwException = true ) {
+		// validate the root
+		if ( !is_string($root) || substr_count($root, '/') != 2 ) {
+			throw new InvalidParamException ("Invalid file root '{$root}' given");
+		}
+
+		list ($componentId, $sectionId, $fileId) = explode('/', $root);
+
+		return $this->get($componentId, $throwException)->getFileByRoot( "$sectionId/$fileId", $asUrl, $throwException );
 	}
 
 	/**
@@ -219,183 +390,5 @@ class Cdn extends \yii\base\Component {
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Build a components list
-	 */
-	protected function buildComponentsCache () {
-		if ( $this->enableCaching ) {
-
-			$cached = \Yii::$app->cache->get ( $this->cacheKey );
-
-			if ( $cached !== false ) {
-				$this->_regComponents = $cached;
-				return;
-			}
-		}
-
-		// @property `components` : load CDN components config
-		if ( is_array($this->components) && !empty($this->components) ) {
-			$this->loadComponents($this->components);
-		}
-
-		// @property `configs` : load CDN components config files
-		if ( is_array($this->configs) && !empty($this->configs) ) {
-
-			foreach ( $this->configs as $cfg ) {
-
-				if ( empty($cfg)) {
-					continue;
-				}
-
-				$this->loadComponentsFile($cfg);
-			}
-		}
-
-		if ( $this->enableCaching ) {
-			\Yii::$app->cache->set($this->cacheKey, $this->_regComponents);
-		}
-	}
-
-	/**
-	 * Import components from configuration array
-	 *
-	 * @param array $config Components configuration
-	 */
-	protected function loadComponents ( array $config ) {
-		/** @var ConfigFile $configFile */
-		$configFile = $this->getFileConfigObject ( null );
-
-		$this->_regComponents = ArrayHelper::merge (
-			$this->_regComponents,
-			$configFile->get ( ( $config ) )
-		);
-	}
-
-	/**
-	 * Get a ConfigFile Object
-	 * @param string $file
-	 * @return ConfigFile
-	 */
-	protected function getFileConfigObject ( $file = null ) {
-		/** @var ConfigFile $fileConfig */
-		return \Yii::createObject($this->configFileClass, [ [
-			'path' => $file,
-			'componentClass' => $this->componentClass,
-			'configParserClass' => $this->configParserClass,
-			'configLoaderClass' => $this->configLoaderClass,
-			'fileClass' => $this->fileClass,
-			'sectionClass' => $this->sectionClass,
-			'basePath' => $this->basePath,
-			'baseUrl' => $this->baseUrl,
-			'aliases' => $this->aliases,
-			'sections' => $this->sections
-		]]);
-	}
-
-	/**
-	 * Import components from configuration file
-	 * @param string $path Components configuration file path
-	 */
-	protected function loadComponentsFile ( $path ) {
-		/** @var ConfigFile $configFile */
-		$configFile = $this->getFileConfigObject( $path );
-
-		$this->_regComponents = ArrayHelper::merge(
-			$this->_regComponents,
-			$configFile->get()
-		);
-	}
-
-	/**
-	 * Remove cache and rebuild components list
-	 */
-	public function refresh () {
-		\Yii::$app->cache->delete( $this->cacheKey );
-		$this->buildComponentsCache();
-	}
-
-	/**
-	 * Get the file by root
-	 * Root example : component-id/section
-	 *
-	 * @see Component::get()
-	 * @see Section::getSection()
-	 * @param string $root Root to file
-	 * @param bool $throwException True will throw exception (default: true)
-	 * @throws \yii\base\UnknownPropertyException When unknown component id given
-	 * @throws \yii\base\InvalidParamException When null given as section
-	 * @throws \yii\base\UnknownPropertyException When section name not found
-	 * @return \yii2cdn\Section Section Object
-	 */
-	public function getSectionByRoot ( $root, $throwException = true ) {
-		// validate the root
-		if ( !is_string ( $root ) || substr_count ( $root, '/' ) != 1 ) {
-			throw new InvalidParamException ( "Invalid section root '{$root}' given" );
-		}
-
-		list ( $componentId, $sectionId ) = explode ( '/', $root );
-
-		return $this->get ( $componentId, $throwException )->getSection ( $sectionId, $throwException );
-	}
-
-	/**
-	 * Get cdn component by ID
-	 * @see Cdn::exists()
-	 * @param string $id Component ID
-	 * @return Component|null Component Object
-	 */
-	public function get ( $id, $throwException = true ) {
-		if ( !$this->exists($id, $throwException) ) {
-			return null;
-		}
-
-		return $this->_regComponents[$id];
-	}
-
-	/**
-	 * Check that cdn component exists
-	 * @param string $id Component ID
-	 * @param boolean $throwException (optional) Throw exception when unknown component id given (default: false)
-	 * @throws \yii\base\UnknownPropertyException When unknown component id given
-	 * @return boolean True when exist, False when undefined
-	 */
-	public function exists ( $id, $throwException = true ) {
-		if ( !array_key_exists($id, $this->_regComponents) ) {
-			if ( $throwException ) {
-				throw new UnknownPropertyException ("Unknown cdn component '{$id}'");
-			} else {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Get the file by root
-	 * Root example : component-id/section/file-id
-	 * @see Component::get()
-	 * @see Section::getSection()
-	 * @see Section::getFileById()
-	 * @param string $root Root to file
-	 * @param bool $asUrl True will return file url instead of object (default: false)
-	 * @param bool $throwException True will throw exception (default: true)
-	 * @throws \yii\base\UnknownPropertyException When unknown component id given
-	 * @throws \yii\base\InvalidParamException When null given as section
-	 * @throws \yii\base\UnknownPropertyException When section name not found
-	 * @throws \yii\base\UnknownPropertyException When file id not found
-	 * @return \yii2cdn\File|string|null Section file | File Url | Null when not found
-	 */
-	public function getFileByRoot ( $root, $asUrl = false, $throwException = true ) {
-		// validate the root
-		if ( !is_string($root) || substr_count($root, '/') != 2 ) {
-			throw new InvalidParamException ("Invalid file root '{$root}' given");
-		}
-
-		list ($componentId, $sectionId, $fileId) = explode('/', $root);
-
-		return $this->get($componentId, $throwException)->getFileByRoot( "$sectionId/$fileId", $asUrl, $throwException );
 	}
 }
