@@ -60,7 +60,7 @@ class Section {
 	 * @param array $config Configuration object
 	 */
 	public function __construct ( array $config ) {
-		$this->componentId = $config['componentId,'];
+		$this->componentId = $config['componentId'];
 		$this->section = $config['section'];
 		$this->baseUrl = $config['baseUrl'];
 		$this->fileClass = $config['fileClass'];
