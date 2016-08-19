@@ -136,9 +136,10 @@ class Section {
 			throw new InvalidParamException ("Parameter {$str} should be string or an array.");
 		}
 
+		/** @var array $list */
 		$list = is_string ( $str)
 			? [$str]
-			: $str;
+			: (array) $str;
 
 		$newList = [];
 
@@ -224,7 +225,7 @@ class Section {
 			$fileUrl = $file->getUrl();
 
 			// Skipped files if excluded list isn't empty and id isn't present
-			if ( in_array( $fileId, $excluded ) ) {
+			if ( in_array( $fileId, $excluded, true ) ) {
 
 				$op = is_callable($callback)
 					? $callback( $fileUrl, $fileId, true, false )
@@ -356,7 +357,10 @@ class Section {
 				$file->registerAsCssFile($options);
 			} else if ( $type === 'js' ) {
 				$file->registerAsJsFile($options);
-			} else if ( is_callable($callback) ) {
+			}
+
+			// Apply callback to each file
+			if ( is_callable($callback) ) {
 				call_user_func_array($callback, [$file->getUrl(), $options, $file->getId()] );
 			}
 
