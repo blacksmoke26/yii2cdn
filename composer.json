@@ -12,7 +12,7 @@
 		"issues" : "https://github.com/blacksmoke26/yii2cdn/issues"
 	},
     "require": {
-        "php": "~5.4.0",
+        "php": "^5.4.0 || ^7.0",
         "yiisoft/yii2": "~2.0.3"
     },
     "authors": [
