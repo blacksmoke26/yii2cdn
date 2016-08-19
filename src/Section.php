@@ -132,7 +132,7 @@ class Section {
 			return $this->baseUrl;
 		}
 
-		if ( !is_string ( $str) && !is_array($str) ) {
+		if ( !is_string ($str) && !is_array($str) ) {
 			throw new InvalidParamException ("Parameter {$str} should be string or an array.");
 		}
 
@@ -144,7 +144,7 @@ class Section {
 		$newList = [];
 
 		foreach ( $list as $itm ) {
-			$newList[] = $this->baseUrl . (substr ( $itm,0,1) !== '/' ? '/' . $itm : $itm);
+			$newList[] = $this->baseUrl . (0 !== strpos ( $itm, '/') ? '/' . $itm : $itm);
 		}
 
 		return count($newList) === 1
@@ -173,7 +173,7 @@ class Section {
 	 *     > array includeOnly : List of Files id to be included, other will be skipped (default: [])
 	 * </code>
 	 * @param boolean $throwException (optional) True will throw exception (default: true)
-	 * @throws \yii\base\InvalidParamException Option 'callback' not a function
+	 * @throws \yii\base\InvalidParamException Option 'callback' is not a function
 	 * @throws \yii\base\InvalidConfigException When option 'excluded' not an array
 	 * @throws \yii\base\InvalidConfigException When option 'includeOnly' not an array
 	 * @return File[]|array List of files | List of sections and their files [SECTION=>FILES_LIST][]
@@ -315,7 +315,7 @@ class Section {
 	 * @param string $type Register files as (e.g., js|css)
 	 * @param array|null $list List of File[] array | simple list | Include all files
 	 * @param array $options (optional) Additional options pass to file while registering files
-	 * @param callable|null $callback (optional) Perform callback on each registering file
+	 * @param callable|null $callback (optional) Apply callback on each registering file
 	 * <code>
 	 *    function (string &$fileUrl, string &$fileId, boolean $excluded, boolean $included ) {
 	 *      // some logic here ...

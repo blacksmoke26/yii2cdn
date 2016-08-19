@@ -218,12 +218,12 @@ class Cdn extends \yii\base\Component {
 		}
 
 		// @property `components` : load CDN components config
-		if ( is_array($this->components) && !empty($this->components) ) {
+		if ( is_array($this->components) && !count($this->components) ) {
 			$this->loadComponents($this->components);
 		}
 
 		// @property `configs` : load CDN components config files
-		if ( is_array($this->configs) && !empty($this->configs) ) {
+		if ( is_array($this->configs) && !count($this->configs) ) {
 
 			foreach ( $this->configs as $cfg ) {
 

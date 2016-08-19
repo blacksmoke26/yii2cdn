@@ -108,7 +108,7 @@ class ConfigParser {
 
 		foreach ( $components as $componentId => $sections ) {
 			foreach ( $sections as $sectionId => $data ) {
-				if ( !in_array ( $sectionId, self::$sections ) || !count ( $data ) ) {
+				if ( !in_array ( $sectionId, self::$sections, true ) || !count ( $data ) ) {
 					continue;
 				}
 
@@ -145,13 +145,13 @@ class ConfigParser {
 			$componentsUrl[$componentId] = $sections['baseUrl'];
 
 			foreach ( $sections as $sectionId => $data ) {
-				if ( !in_array ( $sectionId, self::$sections ) || !count ( $data ) ) {
+				if ( !in_array ( $sectionId, self::$sections, true ) || !count ( $data ) ) {
 					continue;
 				}
 
 				foreach ( $data as $fileId => $fileName ) {
 
-					if ( strstr ( $fileId, '*' ) !== false ) {
+					if ( false !== strpos( $fileId, '*' ) ) {
 						continue;
 					}
 
@@ -192,7 +192,7 @@ class ConfigParser {
 				}
 
 				return $indexed['componentsUrl'][$match[1]]
-				. ( substr ( $match[2], 0, 1 ) !== '/' ? '/' . $match[2] : $match[2] );
+					. ( strpos( $match[2], '/' ) !== 0 ? '/' . $match[2] : $match[2] );
 			},
 
 			// tag: componentFile(ID/SECTION/FILE_ID)
@@ -230,7 +230,7 @@ class ConfigParser {
 		// Validate section names if given
 		if ( count ( $offlineSections = $this->getAttrOfflineSections () ) ) {
 			foreach ( $offlineSections as $sect ) {
-				if ( !in_array ( $sect, self::$sections ) ) {
+				if ( !in_array ( $sect, self::$sections, true ) ) {
 					throw new InvalidConfigException ( "Offline Section '{$sect}' name doesn't exist" );
 				}
 			}
@@ -238,7 +238,7 @@ class ConfigParser {
 
 		foreach ( self::$sections as $section ) {
 
-			if ( in_array ( $section, $offlineSections ) && Cdn::isOnline () ) {
+			if ( in_array ( $section, $offlineSections, true ) && Cdn::isOnline () ) {
 				continue;
 			}
 
@@ -256,7 +256,7 @@ class ConfigParser {
 	 */
 	protected function getAttrOffline () {
 		return array_key_exists('@offline', $this->config) && !empty($this->config['@offline'])
-			? boolval($this->config['@offline'])
+			? (bool) $this->config['@offline']
 			: false;
 	}
 
@@ -280,7 +280,7 @@ class ConfigParser {
 	 */
 	protected function getAttrBaseUrl () {
 		return array_key_exists('@baseUrl', $this->config) && !empty($this->config['@baseUrl'])
-			? trim($this->config['@baseUrl'])
+			? trim( $this->config['@baseUrl'] )
 			: '';
 	}
 
@@ -319,7 +319,7 @@ class ConfigParser {
 	 * @return array
 	 */
 	protected function getFilesBySection( $type ) {
-		if ( !in_array($type, self::$sections) || !isset($this->config[$type])
+		if ( !in_array($type, self::$sections, true) || !isset($this->config[$type])
 			|| !is_array($this->config[$type]) || empty($this->config[$type]) ) {
 			return [];
 		}
@@ -352,7 +352,7 @@ class ConfigParser {
 	 */
 	protected function getFileName ( $file, $type ) {
 		if ( !is_array($file) || is_string($file) ) {
-			return [  uniqid('*') => $this->replaceFileNameTags($file) ];
+			return [  uniqid('*', false) => $this->replaceFileNameTags($file) ];
 		}
 
 		if ( empty($file[0]) || !is_string($file[0]) ) {
@@ -379,7 +379,7 @@ class ConfigParser {
 		// Check file ID, if doesn't exist, assign a unique id
 		$fileId = array_key_exists('@id', $file)
 			? trim($file['@id'])
-			: (string)uniqid('*');
+			: (string) uniqid('*', false);
 
 		if ( array_key_exists('@options', $file) ) {
 			if ( !is_array($file['@options']) || !count($file['@options']) ){
@@ -393,7 +393,7 @@ class ConfigParser {
 		
 		if ( count($attributes) ) {
 			foreach ( $attributes as $attr => $val ) {
-				if ( in_array($attr, $this->defFileAttrs)) {
+				if ( in_array($attr, $this->defFileAttrs, true)) {
 					continue;
 				}
 
@@ -423,33 +423,31 @@ class ConfigParser {
 	 * @return string
 	 */
 	protected function replaceFileNameTags ( $fileName ) {
-		if ( \substr( $fileName, 0, 2 ) === '//'
+		if ( \strpos( $fileName, '//' ) === 0
 			|| \filter_var($fileName, \FILTER_VALIDATE_URL )) {
 			return $fileName;
 		}
 
 		// Replace tags
-		if ( strstr($fileName, '@') !== false ) {
-
+		if ( false !== strpos($fileName, '@') ) {
 			$patterns = [
-
 				// tag: @alias(*)
 				'/^(?i)@alias(?-i)\(([^\)]+)\)(.+)$/' => function ($match) {
 					if (!array_key_exists($match[1], $this->aliases) ) {
 						throw new InvalidConfigException ("Invalid custom url alias '{$match[1]}' given");
 					}
 
-					return \Yii::getAlias($match[1]). (substr($match[2],0,1) !== '/' ? '/'.$match[2] : $match[2]);
+					return \Yii::getAlias($match[1]) . ( 0 !== strpos($match[2], '/') ? '/'.$match[2] : $match[2]);
 				},
 
 				// tag: @yiiAlias(*)
 				'/^(?i)@yiiAlias(?-i)\(([^\)]+)\)(.+)$/' => function ($match) {
-					return \Yii::getAlias($match[1]). (substr($match[2],0,1) !== '/' ? '/'.$match[2] : $match[2]);
+					return \Yii::getAlias($match[1]). ( 0 !== strpos($match[2], '/') ? '/'.$match[2] : $match[2]);
 				},
 
 				// tag: @url(*)
 				'/^(?i)@url(?-i)\(([^\)]+)\)(.+)$/' => function ($match) {
-					return $match[1]. (substr($match[2],0,1) !== '/' ? '/'.$match[2] : $match[2]);
+					return $match[1]. ( 0 !== strpos($match[2], '/') ? '/'.$match[2] : $match[2]);
 				},
 
 				// tag: @appUrl

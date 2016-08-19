@@ -74,8 +74,12 @@ class Component {
 				continue;
 			}
 
+			$faName = isset($config['fileAttrs'][$name])
+				? $config['fileAttrs'][$name]
+				: [];
+
 			$_attributes = isset ($config['fileAttrs'])
-				? isset($config['fileAttrs'][$name]) ? $config['fileAttrs'][$name] : []
+				? $faName
 				: [];
 
 			// Create section(s) component
@@ -108,12 +112,13 @@ class Component {
 
 		$list = is_string ( $str)
 			? [$str]
-			: $str;
+			: (array) $str;
 
 		$newList = [];
 
 		foreach ( $list as $itm ) {
-			$newList[] = $this->baseUrl . (substr ( $itm,0,1) !== '/' ? '/' . $itm : $itm);
+			$newList[] = $this->baseUrl
+				. ( 0!== strpos ( $itm, '/') ? '/' . $itm : $itm );
 		}
 
 		return count($newList) === 1
@@ -146,6 +151,7 @@ class Component {
 	 * @return Section|array|null Section | Sections List | Null when not found
 	 */
 	public function getSection ( $name, $throwException = true ) {
+		/** @var array $sections */
 		$sections = $name;
 
 		if ( !is_array($name) ) {
