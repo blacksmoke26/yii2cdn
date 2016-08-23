@@ -76,7 +76,6 @@ class Component {
 		$this->attributes = (array) $config['componentAttributes'];
 		$this->id = $config['id'];
 		$this->buildSections($config);
-
 	}
 
 	/**
@@ -109,13 +108,20 @@ class Component {
 				$sectAttributes = ArrayHelper::merge((array) $this->getAttr('@sectionsAttrs'), $sectAttributes);
 			}
 
+			$hasSectionUrlName = true;
+
+			// (@hideNameInPathUrls) Source directory url
+			if ( isset($sectAttributes['noNameInPathUrls']) && $sectAttributes['noNameInPathUrls'] ) {
+				$hasSectionUrlName = false;
+			}
+
 			$basePath = isset($sectAttributes['src']) && trim($sectAttributes['src'])
 				? rtrim($this->basePath, '\\/') .DIRECTORY_SEPARATOR . ltrim($sectAttributes['src'],'\\/')
-				: $this->basePath . DIRECTORY_SEPARATOR . $name;
+				: $this->basePath . ($hasSectionUrlName ? DIRECTORY_SEPARATOR . $name : '');
 
 			$baseUrl = isset($sectAttributes['src']) && trim($sectAttributes['src'])
 				? rtrim($this->baseUrl, '/') . '/' . ltrim($sectAttributes['src'],'\\/')
-				: $this->baseUrl . "/{$name}";
+				: $this->baseUrl . ($hasSectionUrlName ? "/{$name}" : '');
 
 			// Create section(s) component
 			/** @var Section $section */			
