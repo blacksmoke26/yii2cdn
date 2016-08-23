@@ -10,6 +10,7 @@
 namespace yii2cdn;
 
 use yii\base\UnknownPropertyException;
+use yii2cdn\traits\Attributes;
 
 /**
  * Yii2 Section File Component
@@ -21,7 +22,16 @@ use yii\base\UnknownPropertyException;
  * @version 0.1
  */
 class File {
+	/**
+	 * Used traits
+	 */
+	use Attributes;
 
+	/**
+	 * File name
+	 * @var string
+	 */
+	protected $fileName;
 	/**
 	 * File ID
 	 * @var string
@@ -33,6 +43,12 @@ class File {
 	 * @var string
 	 */
 	protected $fileUrl;
+
+	/**
+	 * Base Path
+	 * @var string
+	 */
+	protected $basePath;
 
 	/**
 	 * Section name
@@ -67,10 +83,27 @@ class File {
 		if ( !count( $config ) ) {
 			return;
 		}
-		
 		foreach ($config as $prop => $value ) {
 			$this->$prop = $value;
 		}
+	}
+
+	/**
+	 * Get current file id
+	 *
+	 * @return string
+	 */
+	public function getId () {
+		return $this->fileId;
+	}
+
+	/**
+	 * Get current file name
+	 *
+	 * @return string
+	 */
+	public function getName () {
+		return $this->fileName;
 	}
 
 	/**
@@ -82,51 +115,35 @@ class File {
 	}
 
 	/**
+	 * Get current file base path
+	 * @return string
+	 */
+	public function getPath () {
+		return $this->basePath;
+	}
+
+	/**
 	 * Get file section or it's id
-	 *
-	 * @param boolean $asId (optional) True will return section name (default: false)
+	 * @param boolean $idOnly (optional) True will return section name (default: false)
 	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Section|string Section object | Section name
 	 */
-	public function getSection ( $asId, $property = 'cdn' ) {
-		return $asId ? $this->section : $this->getComponent ( false, $property )->getSection ( $this->section );
+	public function getSection ( $idOnly = false, $property = 'cdn' ) {
+		return $idOnly
+			? $this->section
+			: $this->getComponent ( false, $property )->getSection ( $this->section );
 	}
 
 	/**
 	 * Get current file component or it's id
-	 *
-	 * @param boolean $asId (optional) True will return component id (default: false)
+	 * @param boolean $idOnly (optional) True will return component id (default: false)
 	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Component|string Component object | Component id
 	 */
-	public function getComponent ( $asId, $property = 'cdn' ) {
-		return $asId ? $this->component : \Yii::$app->cdn->get ( $property )->get ( $this->component );
-	}
-
-	/**
-	 * Get the file attributes
-	 * @return array
-	 */
-	public function getAttributes () {
-		return $this->attributes;
-	}
-
-	/**
-	 * @param string $name File attribute name
-	 * @param boolean $throwException (optional) True will throw exception (default: true)
-	 * @throws \yii\base\UnknownPropertyException
-	 * @return mixed|null Attribute value | null on empty
-	 */
-	public function getAttr ( $name, $throwException = true ) {
-		if ( isset($this->attributes[$name]) ) {
-			return $this->attributes[$name];
-		}
-
-		if ( $throwException ) {
-			throw new UnknownPropertyException ( "Unknown file attribute '{$name}' given" );
-		}
-
-		return null;
+	public function getComponent ( $idOnly = false, $property = 'cdn' ) {
+		return $idOnly
+			? $this->component
+			: \Yii::$app->cdn->get ( $property )->get ( $this->component );
 	}
 
 	/**
@@ -139,19 +156,21 @@ class File {
 	 * @param string $key the key that identifies the CSS script file. If null, it will use
 	 */
 	public function registerAsCssFile ( array $options = [], $key = null ) {
-		$options = !count($options) ? $this->options : $options;
-		$key = is_null($key) ? $this->getId() : $key;
+		if ( !$this->getAttr('registrable', true) ) {
+			return;
+		}
 
-		\Yii::$app->controller->view->registerCssFile( $this->fileUrl, $options, $key );
-	}
+		$_options = array_merge($this->options, $options);
+		$_key = is_null($key) ? $this->getId() : $key;
 
-	/**
-	 * Get current file id
-	 *
-	 * @return string
-	 */
-	public function getId () {
-		return $this->fileId;
+		$url = $this->fileUrl;
+
+		// Append file modified timestamp at end
+		if ( $this->getAttr('timestamp', false) && ($timestamp = $this->getModifiedTime() ) ) {
+			$url .= '?v='.$timestamp;
+		}
+
+		\Yii::$app->controller->view->registerCssFile( $url, $_options, $_key );
 	}
 
 	/**
@@ -172,9 +191,32 @@ class File {
 	 * will overwrite the former.
 	 */
 	public function registerAsJsFile ( array $options = [], $key = null ) {
-		$options = !count($options) ? $this->options : $options;
-		$key = is_null($key) ? $this->getId() : $key;
+		if ( !$this->getAttr('registrable', true) ) {
+			return;
+		}
 
-		\Yii::$app->controller->view->registerJsFile( $this->fileUrl, $options, $key );
+		$_options = array_merge($this->options, $options);
+		$_key = is_null($key) ? $this->getId() : $key;
+
+		$url = $this->fileUrl;
+
+		// Append file modified timestamp at end
+		if ( $this->getAttr('timestamp', false) && ($timestamp = $this->getModifiedTime() ) ) {
+			$url .= '?v='.$timestamp;
+		}
+
+		\Yii::$app->controller->view->registerJsFile( $url, $_options, $_key );
+	}
+
+	/**
+	 * Get the file modified timestamp
+	 * @return int|null time stamp | Unable to retrieve file modified time
+	 */
+	public function getModifiedTime () {
+		if ( file_exists($this->basePath) ) {
+			return filemtime( $this->basePath );
+		}
+
+		return null;
 	}
 }

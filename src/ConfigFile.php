@@ -123,6 +123,7 @@ class ConfigFile {
 				'id' => $id,
 				'config' => $config,
 				'baseUrl' => $this->config['baseUrl'],
+				'basePath' => $this->config['basePath'],
 				'sections' => $this->config['sections'],
 				'fileClass' => $this->config['fileClass'],
 				'sectionClass' =>$this->config['sectionClass'],
@@ -142,6 +143,7 @@ class ConfigFile {
 
 		foreach ( $postBuiltList as $id=>$data ) {
 
+			$data['preComponents'] = $builtList;
 			/** @var Component $component */
 			$component = \Yii::createObject( $this->config['componentClass'], [$data] );
 

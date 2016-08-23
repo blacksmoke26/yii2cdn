@@ -12,6 +12,10 @@ namespace yii2cdn;
 use yii\base\InvalidParamException;
 use \yii\base\InvalidConfigException;
 use \yii\base\UnknownPropertyException;
+use yii\helpers\ArrayHelper;
+use yii2cdn\traits\Url;
+use yii2cdn\traits\File;
+use yii2cdn\traits\Attributes;
 
 /**
  * Yii2 Component Section File object
@@ -23,6 +27,12 @@ use \yii\base\UnknownPropertyException;
  * @version 0.1
  */
 class Section {
+	/**
+	 * Used traits
+	 */
+	use Url;
+	use File;
+	use Attributes;
 
 	/**
 	 * Section base Url
@@ -31,16 +41,28 @@ class Section {
 	protected $baseUrl;
 
 	/**
+	 * Base Path
+	 * @var string
+	 */
+	protected $basePath;
+
+	/**
 	 * Component ID
 	 * @var string
 	 */
-	protected $componentId;
+	protected $component;
 
 	/**
 	 * Section name
 	 * @var string
 	 */
 	protected $section;
+
+	/**
+	 * Section attributes
+	 * @var array
+	 */
+	protected $attributes = [];
 
 	/**
 	 * Section files
@@ -52,7 +74,7 @@ class Section {
 	 * Section file class
 	 * @var string
 	 */
-	private $fileClass;
+	protected $fileClass;
 
 	/**
 	 * ComponentSection constructor.
@@ -60,46 +82,67 @@ class Section {
 	 * @param array $config Configuration object
 	 */
 	public function __construct ( array $config ) {
-		$this->componentId = $config['componentId'];
+
+		$this->component = $config['component'];
 		$this->section = $config['section'];
 		$this->baseUrl = $config['baseUrl'];
+		$this->basePath = $config['basePath'];
 		$this->fileClass = $config['fileClass'];
-
+		$this->attributes = $config['attributes'];
 		if ( !count($config['files']) ) {
 			return;
 		}
 
-		foreach ( $config['files'] as $id => $url ) {
+		foreach ( $config['files'] as $id => $props ) {
 			$options = $_attributes = [];
 
-			if ( count($config['attributes']) ) {
+			if ( count($config['fileAttributes']) ) {
 
-				foreach ( $config['attributes'] as $k => $v ) {
-
+				foreach ( $config['fileAttributes'] as $k => $v ) {
 					$inf = explode('/', $k);
 
-					if ( isset($attributes["@options/{$id}"]) ) {
-						$options = $attributes["@options/{$id}"];
-						unset($attributes["@options/{$id}"]);
+					if ( $k === "@options/{$id}" ) {
+						$options = $v;
 						continue;
 					} else if ( $id === $inf[1] ) {
 						$_attributes[ $inf[0] ] = $v;
 					}
 				}
 			}
-			
-			// Create File(s) object
-			$sectionNode = \Yii::createObject($config['fileClass'], [[
+
+			$basePath = $this->basePath . DIRECTORY_SEPARATOR . $props['file'];
+
+			// Defined all files attributes
+			if ( ($val = $this->getAttr('@filesAttrs') ) !== null ) {
+				$_attributes = ArrayHelper::merge((array) $this->getAttr('@filesAttrs'), $_attributes);
+			}
+
+			if ( isset($props['_component']) && isset($config['preComponents'][$props['_component']]) ) {
+				/** @var Section $comp */
+				$comp = $config['preComponents'][$props['_component']]->getSection($props['_section']);
+
+				$basePath = $comp->getPath($props['file']);
+			}
+
+			/** @var File $fileNode */
+			$fileNode = \Yii::createObject($this->fileClass, [[
 				'fileId'=>$id,
-				'fileUrl'=>$url,
-				'section'=>$this->section,
-				'component'=>$this->componentId,
+				'fileUrl'=>$props['url'],
+				'fileName'=>$props['file'],
+				'basePath'=>$basePath,
+				'section'=> (!isset($props['_section']) ? $this->section : $props['_section']),
+				'component'=> $this->component,
 				'options'=>$options,
 				'attributes'=>$_attributes,
 			]]);
 
-			$this->files[$id] = $sectionNode;
+			unset($config['preComponents']);
+
+			$this->files[$id] = $fileNode;
 		}
+
+		// Remove files attributes
+		unset($this->attributes['@filesAttrs']);
 	}
 
 	/**
@@ -112,49 +155,16 @@ class Section {
 
 	/**
 	 * Get section's component or id
-	 * 
 	 * @param boolean $asId (optional) True will return component id (default: false)
 	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Component|string Component object | Component ID
 	 */
 	public function getComponent ( $asId = false, $property = 'cdn' ) {
-		return $asId ? $this->componentId : \Yii::$app->cdn->get ( $property )->get ( $this->componentId );
-	}
-
-	/**
-	 * Get the section's base Url
-	 *
-	 * @param null|string|array $str (optional) Append string at end of url (/ is optional) | List of strings to append url with (default: null)
-	 * @return string|array
-	 */
-	public function getUrl ( $str = null ) {
-		if ( empty( $str) ) {
-			return $this->baseUrl;
-		}
-
-		if ( !is_string ($str) && !is_array($str) ) {
-			throw new InvalidParamException ("Parameter {$str} should be string or an array.");
-		}
-
-		/** @var array $list */
-		$list = is_string ( $str)
-			? [$str]
-			: (array) $str;
-
-		$newList = [];
-
-		foreach ( $list as $itm ) {
-			$newList[] = $this->baseUrl . (0 !== strpos ( $itm, '/') ? '/' . $itm : $itm);
-		}
-
-		return count($newList) === 1
-			? array_shift($newList)
-			: $newList;
+		return $asId ? $this->component : \Yii::$app->get($property)->get ( $this->component );
 	}
 
 	/**
 	 * Perform a callback on each file and get the filtered files
-	 *
 	 * @param callable $callback Perform a callback on each file
 	 * <code>
 	 *     # $excluded : True if file has been skipped (found in 'excluded' list), FALSE anyway

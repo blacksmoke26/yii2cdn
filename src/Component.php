@@ -12,6 +12,10 @@ namespace yii2cdn;
 use yii\base\InvalidParamException;
 use yii\base\InvalidValueException;
 use yii\base\UnknownPropertyException;
+use yii\helpers\ArrayHelper;
+use yii2cdn\traits\Url;
+use yii2cdn\traits\File;
+use yii2cdn\traits\Attributes;
 
 /**
  * Yii2 CDN Component object
@@ -23,6 +27,12 @@ use yii\base\UnknownPropertyException;
  * @version 0.1
  */
 class Component {
+	/**
+	 * Used traits
+	 */
+	use Url;
+	use File;
+	use Attributes;
 
 	/**
 	 * Component ID
@@ -37,16 +47,22 @@ class Component {
 	protected $baseUrl;
 
 	/**
+	 * Component's base path
+	 * @var string
+	 */
+	protected $basePath;
+
+	/**
+	 * Component attributes
+	 * @var array
+	 */
+	protected $attributes = [];
+
+	/**
 	 * Sections list
 	 * @var Section[]
 	 */
 	protected $sections = [];
-
-	/**
-	 * CDN sections name
-	 * @var array
-	 */
-	protected $sectionsName = [];
 
 	/**
 	 * Component constructor.
@@ -56,9 +72,11 @@ class Component {
 	 */
 	public function __construct ( array $config ) {
 		$this->baseUrl = $config['baseUrl'];
+		$this->basePath = $config['basePath'];
+		$this->attributes = (array) $config['componentAttributes'];
 		$this->id = $config['id'];
-		$this->sectionsName = $config['sections'];
 		$this->buildSections($config);
+
 	}
 
 	/**
@@ -68,7 +86,7 @@ class Component {
 	 * @param array $config Configuration object
 	 */
 	protected function buildSections ( array $config ) {
-		foreach ( $this->sectionsName as $name ) {
+		foreach ( $config['sections'] as $name ) {
 
 			if ( !array_key_exists($name, $config) || empty($config[$name]) ) {
 				continue;
@@ -82,48 +100,42 @@ class Component {
 				? $faName
 				: [];
 
+			/// Section attributes
+			/** @var array $sectAttributes */
+			$sectAttributes = (array) $config['sectionsAttributes'][$name];
+
+			// Defined all sections attributes
+			if (  $this->getAttr('@sectionsAttrs') !== null ) {
+				$sectAttributes = ArrayHelper::merge((array) $this->getAttr('@sectionsAttrs'), $sectAttributes);
+			}
+
+			$basePath = isset($sectAttributes['src']) && trim($sectAttributes['src'])
+				? rtrim($this->basePath, '\\/') .DIRECTORY_SEPARATOR . ltrim($sectAttributes['src'],'\\/')
+				: $this->basePath . DIRECTORY_SEPARATOR . $name;
+
+			$baseUrl = isset($sectAttributes['src']) && trim($sectAttributes['src'])
+				? rtrim($this->baseUrl, '/') . '/' . ltrim($sectAttributes['src'],'\\/')
+				: $this->baseUrl . "/{$name}";
+
 			// Create section(s) component
 			/** @var Section $section */			
 			$this->sections[$name] = \Yii::createObject($config['sectionClass'], [[
-				'componentId' => $this->id,
+				'component' => $this->id,
 				'section' =>$name,
 				'files' => $config[$name],
-				'baseUrl' => rtrim($this->baseUrl, '/'). "/{$name}",
-				'attributes' => $_attributes,
+				'baseUrl' => $baseUrl,
+				'basePath' => str_replace('/', DIRECTORY_SEPARATOR, $basePath),
+				'attributes' => $sectAttributes,
+				'fileAttributes' => $_attributes,
 				'fileClass' => $config['fileClass'],
+				'preComponents' => $config['preComponents']
 			]]);
-		}
-	}
 
-	/**
-	 * Get the component's base Url
-	 *
-	 * @param null|string|array $str (optional) Append string at end of url (/ is optional) | List of strings to append url with (default: null)
-	 * @return string|array
-	 */
-	public function getUrl ( $str = null ) {
-		if ( $str === null || empty($str) ) {
-			return $this->baseUrl;
+			unset($config['preComponents']);
 		}
 
-		if ( !is_string ($str) && !is_array($str) ) {
-			throw new InvalidParamException ("Parameter 'str' should be string or an array.");
-		}
-
-		$list = is_string ( $str)
-			? [$str]
-			: (array) $str;
-
-		$newList = [];
-
-		foreach ( $list as $itm ) {
-			$newList[] = $this->baseUrl
-				. ( 0!== strpos ( $itm, '/') ? '/' . $itm : $itm );
-		}
-
-		return count($newList) === 1
-			? array_shift($newList)
-			: $newList;
+		// Remove sections attributes
+		unset($this->attributes['@sectionsAttrs']);
 	}
 
 	/**

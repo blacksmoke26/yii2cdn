@@ -13,6 +13,8 @@ use yii\base\InvalidConfigException;
 use yii\base\UnknownPropertyException;
 use yii\base\InvalidParamException;
 use yii\helpers\ArrayHelper;
+use yii2cdn\traits\Url;
+use yii2cdn\traits\File;
 
 defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
 
@@ -26,6 +28,11 @@ defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
  * @version 0.1
  */
 class Cdn extends \yii\base\Component {
+	/**
+	 * Used traits
+	 */
+	use Url;
+	use File;
 
 	/**
 	 * Base url to cdn directory
@@ -92,10 +99,12 @@ class Cdn extends \yii\base\Component {
 	/**
 	 * CDN components configuration files list
 	 * Usage:
-	 *     1. 'path/to/cdn-config.php' : main file path
-	 *     2. ['path/to/cdn-config.php'] : main file path
-	 *     3. ['path/to/cdn-config.php', 'offline'=>false] : online cdn file path
-	 *     4. ['path/to/cdn-config.php', 'offline'=>true] : offline cdn file path
+	 * <code>
+	 *  1. 'path/to/cdn-config.php' : main file path
+	 *  2. ['path/to/cdn-config.php'] : main file path
+	 *  3. ['path/to/cdn-config.php', 'offline'=>false] : online cdn file path
+	 *  4. ['path/to/cdn-config.php', 'offline'=>true] : offline cdn file path
+	 * </code>
 	 * @var array
 	 */
 	public $configs = [];
@@ -170,7 +179,7 @@ class Cdn extends \yii\base\Component {
 			'basePath' => $this->basePath,
 			'baseUrl' => $this->baseUrl,
 			'aliases' => $this->aliases,
-			'sections' => $this->sections
+			'sections' => $this->sections,
 		]]);
 	}
 
@@ -218,7 +227,7 @@ class Cdn extends \yii\base\Component {
 		}
 
 		// @property `components` : load CDN components config
-		if ( is_array($this->components) && !count($this->components) ) {
+		if ( is_array($this->components) && !empty($this->components) ) {
 			$this->loadComponents($this->components);
 		}
 
@@ -241,7 +250,7 @@ class Cdn extends \yii\base\Component {
 	}
 
 	/**
-	 * Remove the cache and rebuild components list
+	 * Clear cache and rebuild components
 	 */
 	public function refresh () {
 		\Yii::$app->cache->delete( $this->cacheKey );
