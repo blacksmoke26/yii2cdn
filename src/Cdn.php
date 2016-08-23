@@ -116,11 +116,11 @@ class Cdn extends \yii\base\Component {
 	public $components = [];
 
 	/**
-	 * Sections name list
+	 * (optional) Add the Sections name only to be parsed (other will be skipped)
 	 * default: (<code>css</code>, <code>js</code>)
 	 * @var array
 	 */
-	public $sections = ['js', 'css'];
+	public $sections = ['css', 'js'];
 
 	/**
 	 * Cache Key for caching built components configuration to load fast
