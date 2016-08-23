@@ -555,7 +555,7 @@ class ConfigParser {
 		$_attributes = !count($attributes) ? self::$sectionOptions[$type] : $attributes;
 
 		// Base Url
-		if ( isset(self::$sectionOptions[$type]['baseUrl']) ) {
+		if ( isset($_attributes['baseUrl']) ) {
 
 			if ( !is_string($_attributes['baseUrl']) || !trim($_attributes['baseUrl']) ) {
 				throw new InvalidConfigException("Section `{$type}`'s `baseUrl` attribute is not valid ");
@@ -576,8 +576,15 @@ class ConfigParser {
 			return $baseUrl . ( $fileName ? '/'. ltrim($fileName, '/') : '' );
 		}
 
+		$urlName = "{$type}/";
+
+		// (@noNameInPathUrls) Source directory url
+		if ( isset($_attributes['noNameInPathUrls']) && $_attributes['noNameInPathUrls'] ) {
+			$urlName = '';
+		}
+
 		// Section type name url
-		return rtrim($this->getUrl(), '/') . "/{$type}/" . ltrim($fileName, '/');
+		return rtrim($this->getUrl(), '/') . "/" . $urlName . ltrim($fileName, '/');
 	}
 
 	/**
@@ -604,7 +611,9 @@ class ConfigParser {
 			return $basePath . ( $fileName ? DIRECTORY_SEPARATOR. ltrim($fileName, '/\\') : '' );
 		}
 
+		$urlName = "{$type}/";
+
 		// Section type name url
-		return $basePath . DIRECTORY_SEPARATOR .'x/' . ltrim($fileName, '/');
+		return $basePath . DIRECTORY_SEPARATOR .'/' . ltrim($fileName, '/');
 	}
 }
