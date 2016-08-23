@@ -1,6 +1,23 @@
 Yii2 CDN History
 =======================
 
+## v0.2.2
+* Added section's functional attribute:
+
+ ```php
+// removes section from paths/urls.
+// Default value: false
+"noNameInPathUrls" => true,
+```
+
+* Updated property doc comment
+* Updated Version to 0.2.2
+
+## v0.2.1
+ * Bug fixed: yii2cdn\trait\Url not found.
+ * Added trait files
+ * Updated readme file
+
 ## v0.2.0 (purple)
 
  * (New) Component and Section custom attributes.
