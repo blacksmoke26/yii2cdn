@@ -7,9 +7,11 @@ Yii2 CDN History
  * (New) `Basepath` property and related methods.
  * (New) Traits (`Url`, `File` and `Attributes`)
  * (New) Replaceable tags (Filename only)
+ 
  ```
  @thisComponentUrl , @thisSectionUrl
  ```
+ 
  * (New) Inheritable attributes (in attribute tags)
 
  `@sectionsAttrs` and `@filesAttrs`
@@ -28,7 +30,9 @@ Yii2 CDN History
 		// sections
 	],
 ```
+
  * (New) Functional file attributes
+ 
  ```php
  // Appends file modified time at the end of url.
  // ...file.js?v=############
@@ -37,6 +41,7 @@ Yii2 CDN History
 // For JavaScript and CSS files only
 'registrable'=>false, 
 ```
+
  * Various issues resolved and major code improvements.
 
 ## v0.1.4
