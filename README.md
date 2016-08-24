@@ -57,7 +57,7 @@ to the require section of your `composer.json` file.
 	'cdn' => [
 		'class' => '\yii2cdn\Cdn',
 		'baseUrl' => '/cdn',
-		'basePath' => dirname(dirname(__DIR__)) . '/cdn',
+		'basePath' => dirname(__DIR__, 2) . '/cdn',
 		'components' => [
         	'font-awesome' => [
             	'css' => [
