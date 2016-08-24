@@ -101,6 +101,7 @@ class ConfigParser {
 		self::$sections = $config['sections'];
 		$this->_props['fileClass'] = $config['fileClass'];
 		$this->_props['sectionClass'] = $config['sectionClass'];
+		$this->aliases = $config['aliases'];
 	}
 
 	/**
@@ -408,8 +409,9 @@ class ConfigParser {
 			}
 
 			return [  uniqid('*', false) => [
-				'file' => ltrim(preg_replace('/^@[a-zA-Z]+/', '', $file), '\\/'),
-				'url' => $this->replaceFileNameTags($file, $type) ]
+					'file' => $this->replaceFileNameTags($file, $type),
+					'url' => $this->replaceFileNameTags($file, $type)
+				]
 			];
 		}
 
@@ -508,12 +510,12 @@ class ConfigParser {
 				},
 
 				// tag: @alias(*)
-				'/^(?i)@alias(?-i)\(([^\)]+)\)(.+)$/' => function ($match) {
+				'/^(?i)@alias(?-i)\(([^\)]+)\)(.+)?$/' => function ($match) {
 					if (!array_key_exists($match[1], $this->aliases) ) {
 						throw new InvalidConfigException ("Invalid custom url alias '{$match[1]}' given");
 					}
 
-					return \Yii::getAlias($match[1]) . ( 0 !== strpos($match[2], '/') ? '/'.$match[2] : $match[2]);
+					return $this->aliases[$match[1]] . ( 0 !== strpos($match[2], '/') ? '/'.$match[2] : $match[2]);
 				},
 
 				// tag: @yiiAlias(*)
@@ -533,6 +535,11 @@ class ConfigParser {
 
 				// tag: @baseUrl
 				'/^((?i)@baseUrl(?-i))(.+)$/' => function ($match) {
+					return $this->getUrl() . $match[2];
+				},
+
+				// tag: @*** remove
+				'/^(@[a-zA-Z]+\([a-zA-Z0-9_]+\)|@([a-zA-Z]+))/' => function ($match) {
 					return $this->getUrl() . $match[2];
 				},
 			];

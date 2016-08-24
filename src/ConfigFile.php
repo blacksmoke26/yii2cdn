@@ -127,6 +127,7 @@ class ConfigFile {
 				'sections' => $this->config['sections'],
 				'fileClass' => $this->config['fileClass'],
 				'sectionClass' =>$this->config['sectionClass'],
+				'aliases' =>$this->config['aliases'],
 			]]);
 
 			if ( ($props = $parser->getParsed()) === null ) {
