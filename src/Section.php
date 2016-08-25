@@ -13,9 +13,6 @@ use yii\base\InvalidParamException;
 use \yii\base\InvalidConfigException;
 use \yii\base\UnknownPropertyException;
 use yii\helpers\ArrayHelper;
-use yii2cdn\traits\Url;
-use yii2cdn\traits\File;
-use yii2cdn\traits\Attributes;
 
 /**
  * Yii2 Component Section File object
@@ -30,9 +27,9 @@ class Section {
 	/**
 	 * Used traits
 	 */
-	use Url;
-	use File;
-	use Attributes;
+	use \yii2cdn\traits\Url;
+	use \yii2cdn\traits\File;
+	use \yii2cdn\traits\Attributes;
 
 	/**
 	 * Section base Url
@@ -302,12 +299,12 @@ class Section {
 	/**
 	 * Get the file by ID
 	 * @param string $id File ID
-	 * @param bool $usUrl True will return file url instead of object (default: false)
-	 * @param bool $throwException True will throw exception when file id not found (default: true)
+	 * @param bool $asUrl (optional) True will return file url instead of object (default: false)
+	 * @param bool $throwException (optional) True will throw exception when file id not found (default: true)
 	 * @throws \yii\base\UnknownPropertyException When file id not found
 	 * @return \yii2cdn\File|string|null Section file | File Url | Null when not found
 	 */
-	public function getFileById ( $id, $usUrl = false, $throwException = true ) {
+	public function getFileById ( $id, $asUrl = false, $throwException = true ) {
 		if ( !array_key_exists($id, $this->files) ) {
 
 			if ( $throwException ) {
@@ -317,7 +314,7 @@ class Section {
 			return null;
 		}
 
-		return !$usUrl ? $this->files[$id] : $this->files[$id]->getUrl();
+		return !$asUrl ? $this->files[$id] : $this->files[$id]->getUrl();
 	}
 
 	/**
