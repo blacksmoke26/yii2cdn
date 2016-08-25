@@ -91,13 +91,7 @@ class Component {
 				continue;
 			}
 
-			$faName = isset($config['fileAttrs'][$name])
-				? $config['fileAttrs'][$name]
-				: [];
-
-			$_attributes = isset ($config['fileAttrs'])
-				? $faName
-				: [];
+			$noNameInPathUrls = false;
 
 			/// Section attributes
 			/** @var array $sectAttributes */
@@ -108,20 +102,26 @@ class Component {
 				$sectAttributes = ArrayHelper::merge((array) $this->getAttr('@sectionsAttrs'), $sectAttributes);
 			}
 
-			$hasSectionUrlName = true;
+			$faName = isset($config['fileAttrs'][$name])
+				? $config['fileAttrs'][$name]
+				: [];
+
+			$_attributes = isset ($config['fileAttrs'])
+				? $faName
+				: [];
 
 			// (@hideNameInPathUrls) Source directory url
-			if ( isset($sectAttributes['noNameInPathUrls']) && $sectAttributes['noNameInPathUrls'] ) {
-				$hasSectionUrlName = false;
+			if ( isset($sectAttributes['noNameInPathUrls']) ) {
+				$noNameInPathUrls = $sectAttributes['noNameInPathUrls'];
 			}
 
 			$basePath = isset($sectAttributes['src']) && trim($sectAttributes['src'])
 				? rtrim($this->basePath, '\\/') .DIRECTORY_SEPARATOR . ltrim($sectAttributes['src'],'\\/')
-				: $this->basePath . ($hasSectionUrlName ? DIRECTORY_SEPARATOR . $name : '');
+				: $this->basePath . (!$noNameInPathUrls ? DIRECTORY_SEPARATOR . $name : '');
 
 			$baseUrl = isset($sectAttributes['src']) && trim($sectAttributes['src'])
 				? rtrim($this->baseUrl, '/') . '/' . ltrim($sectAttributes['src'],'\\/')
-				: $this->baseUrl . ($hasSectionUrlName ? "/{$name}" : '');
+				: $this->baseUrl . (!$noNameInPathUrls ? "/{$name}" : '');
 
 			// Create section(s) component
 			/** @var Section $section */			
@@ -178,15 +178,17 @@ class Component {
 
 		$list = [];
 
-		foreach ( $sections as $name ) {
-			if ( !$this->sectionExists($name, $throwException ) ) {
+		foreach ( $sections as $section ) {
+			if ( !$this->sectionExists($section, $throwException ) ) {
 				continue;
 			}
 
-			$list[] = $this->sections[$name];
+			$list[] = $this->sections[$section];
 		}
 
-		return count($list) == 1 ? array_shift($list) : $list;
+		return count($list) == 1
+			? array_shift($list)
+			: $list;
 	}
 
 	/**
