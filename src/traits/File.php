@@ -7,6 +7,7 @@
  */
 
 namespace yii2cdn\traits;
+use yii\base\InvalidParamException;
 
 /**
  * Class File
