@@ -13,8 +13,6 @@ use yii\base\InvalidConfigException;
 use yii\base\UnknownPropertyException;
 use yii\base\InvalidParamException;
 use yii\helpers\ArrayHelper;
-use yii2cdn\traits\Url;
-use yii2cdn\traits\File;
 
 defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
 
@@ -31,8 +29,8 @@ class Cdn extends \yii\base\Component {
 	/**
 	 * Used traits
 	 */
-	use Url;
-	use File;
+	use \yii2cdn\traits\Url;
+	use \yii2cdn\traits\File;
 
 	/**
 	 * Base url to cdn directory
