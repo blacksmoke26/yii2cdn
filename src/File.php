@@ -9,9 +9,6 @@
 
 namespace yii2cdn;
 
-use yii\base\UnknownPropertyException;
-use yii2cdn\traits\Attributes;
-
 /**
  * Yii2 Section File Component
  *
@@ -25,7 +22,7 @@ class File {
 	/**
 	 * Used traits
 	 */
-	use Attributes;
+	use \yii2cdn\traits\Attributes;
 
 	/**
 	 * File name
