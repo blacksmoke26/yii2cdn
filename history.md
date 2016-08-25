@@ -4,9 +4,10 @@ Yii2 CDN History
 ## v0.2.3
 * Bug fixed: none of the inheritable attribute exist.
 * Bug fixed: functional attribute `noNameInPathUrls` url was wrong.
+* Bug fixed: unknown custom alias.
 * Removed `getSectionBasePath` method in `ConfigParser` class.
+* Issue resolved: Traits and core classes of same name were conflicting with each other.
 * Various code improvements.
-
 
 ## v0.2.2
 * Added section's functional attribute:
