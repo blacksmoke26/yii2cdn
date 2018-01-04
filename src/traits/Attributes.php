@@ -1,12 +1,14 @@
 <?php
 /**
- * @copyright Copyright (c) 2016 Junaid Atari
- * @link http://junaidatari.com Website
+ * @author Junaid Atari <mj.atari@gmail.com>
+ * @link http://junaidatari.com Author Website
  * @see http://www.github.com/blacksmoke26/yii2-cdn
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
  */
 
 namespace yii2cdn\traits;
+
+use yii\base\UnknownPropertyException;
 
 /**
  * Class Attributes
@@ -21,6 +23,7 @@ trait Attributes {
 	public function getAttributes () {
 		return $this->attributes;
 	}
+
 	/**
 	 * Set attribute's value
 	 * @param string $name Name of the attribute
@@ -38,7 +41,7 @@ trait Attributes {
 	 * @return mixed|null The value
 	 * @throws \yii\base\UnknownPropertyException When undefined attribute name given.
 	 */
-	public function getAttr ( $name, $defaultVal = null, $throwException = false ) {
+	public function getAttr ( $name, $defaultVal = \null, $throwException = \false ) {
 		if ( isset($this->attributes[$name]) ) {
 			return $this->attributes[$name];
 		}

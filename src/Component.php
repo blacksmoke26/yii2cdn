@@ -1,21 +1,21 @@
 <?php
-
 /**
- * @copyright Copyright (c) 2016 Junaid Atari
- * @link http://junaidatari.com Website
+ * @author Junaid Atari <mj.atari@gmail.com>
+ * @link http://junaidatari.com Author Website
  * @see http://www.github.com/blacksmoke26/yii2-cdn
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
  */
 
 namespace yii2cdn;
 
+use Yii;
 use yii\base\InvalidParamException;
 use yii\base\InvalidValueException;
 use yii\base\UnknownPropertyException;
 use yii\helpers\ArrayHelper;
-use yii2cdn\traits\Url;
-use yii2cdn\traits\File;
 use yii2cdn\traits\Attributes;
+use yii2cdn\traits\File;
+use yii2cdn\traits\Url;
 
 /**
  * Yii2 CDN Component object
@@ -24,7 +24,7 @@ use yii2cdn\traits\Attributes;
  * @author Junaid Atari <mj.atari@gmail.com>
  *
  * @access public
- * @version 0.1
+ * @version 0.2
  */
 class Component {
 	/**
@@ -65,10 +65,11 @@ class Component {
 	protected $sections = [];
 
 	/**
-	 * Component constructor.
-	 *
+	 * Class constructor
 	 * @param string $id Component ID
 	 * @param array $config Configuration
+	 * @throws \yii\base\InvalidConfigException
+	 * @throws \yii\base\UnknownPropertyException
 	 */
 	public function __construct ( array $config ) {
 		$this->baseUrl = $config['baseUrl'];
@@ -83,30 +84,38 @@ class Component {
 	 * Note: Empty sections will be removed
 	 *
 	 * @param array $config Configuration object
+	 * @throws \yii\base\UnknownPropertyException
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	protected function buildSections ( array $config ) {
 		foreach ( $config['sections'] as $name ) {
-
-			if ( !array_key_exists($name, $config) || empty($config[$name]) ) {
+			if ( !\array_key_exists($name, $config)
+				|| empty($config[$name]) ) {
 				continue;
 			}
 
-			$noNameInPathUrls = false;
+			/** @var boolean $noNameInPathUrls */
+			$noNameInPathUrls = \false;
 
 			/// Section attributes
 			/** @var array $sectAttributes */
 			$sectAttributes = (array) $config['sectionsAttributes'][$name];
 
 			// Defined all sections attributes
-			if (  $this->getAttr('@sectionsAttrs') !== null ) {
-				$sectAttributes = ArrayHelper::merge((array) $this->getAttr('@sectionsAttrs'), $sectAttributes);
+			if ( \null !== $this->getAttr('@sectionsAttrs') ) {
+				$sectAttributes = ArrayHelper::merge(
+					(array) $this->getAttr('@sectionsAttrs'),
+					$sectAttributes
+				);
 			}
 
+			/** @var array $faName */
 			$faName = isset($config['fileAttrs'][$name])
 				? $config['fileAttrs'][$name]
 				: [];
 
-			$_attributes = isset ($config['fileAttrs'])
+			/** @var array $_attributes */
+			$_attributes = isset($config['fileAttrs'])
 				? $faName
 				: [];
 
@@ -115,22 +124,34 @@ class Component {
 				$noNameInPathUrls = $sectAttributes['noNameInPathUrls'];
 			}
 
-			$basePath = isset($sectAttributes['src']) && trim($sectAttributes['src'])
-				? rtrim($this->basePath, '\\/') .DIRECTORY_SEPARATOR . ltrim($sectAttributes['src'],'\\/')
-				: $this->basePath . (!$noNameInPathUrls ? DIRECTORY_SEPARATOR . $name : '');
+			/** @var string $basePath */
+			$basePath = isset($sectAttributes['src']) && \trim($sectAttributes['src'])
+				? \rtrim($this->basePath, '\\/')
+					. \DIRECTORY_SEPARATOR . \ltrim($sectAttributes['src'],'\\/')
+				: $this->basePath . (
+					!$noNameInPathUrls
+						? \DIRECTORY_SEPARATOR . $name
+						: ''
+				);
 
-			$baseUrl = isset($sectAttributes['src']) && trim($sectAttributes['src'])
-				? rtrim($this->baseUrl, '/') . '/' . ltrim($sectAttributes['src'],'\\/')
-				: $this->baseUrl . (!$noNameInPathUrls ? "/{$name}" : '');
+			/** @var string $baseUrl */
+			$baseUrl = isset($sectAttributes['src']) && \trim($sectAttributes['src'])
+				? \rtrim($this->baseUrl, '/')
+					. '/' . \ltrim($sectAttributes['src'],'\\/')
+				: $this->baseUrl . (
+					!$noNameInPathUrls
+						? "/{$name}"
+						: ''
+				);
 
 			// Create section(s) component
 			/** @var Section $section */			
-			$this->sections[$name] = \Yii::createObject($config['sectionClass'], [[
+			$this->sections[$name] = Yii::createObject($config['sectionClass'], [[
 				'component' => $this->id,
 				'section' =>$name,
 				'files' => $config[$name],
 				'baseUrl' => $baseUrl,
-				'basePath' => str_replace('/', DIRECTORY_SEPARATOR, $basePath),
+				'basePath' => \str_replace('/', DIRECTORY_SEPARATOR, $basePath),
 				'attributes' => $sectAttributes,
 				'fileAttributes' => $_attributes,
 				'fileClass' => $config['fileClass'],
@@ -149,15 +170,18 @@ class Component {
 	 * @param boolean $asUrl (optional) True will return files url only (default: false)
 	 * @param boolean $unique (optional) True will remove duplicate elements (default: true)
 	 * @return array List of js section files
+	 * @throws \yii\base\UnknownPropertyException
 	 */
-	public function getJsFiles ( $asUrl = false, $unique = true ) {
-		$files = $this->getSection ( 'js' )->getFiles ( true, $unique );
+	public function getJsFiles ( $asUrl = \false, $unique = \true ) {
+		/** @var array|null|\yii2cdn\File[] $files */
+		$files = $this->getSection ('js')
+			->getFiles (\true, $unique);
 
 		if ( !$asUrl ) {
 			return $files;
 		}
 
-		return array_values ( $files );
+		return \array_values ( $files );
 	}
 
 	/**
@@ -168,14 +192,15 @@ class Component {
 	 * @throws \yii\base\UnknownPropertyException When section name not found
 	 * @return Section|array|null Section | Sections List | Null when not found
 	 */
-	public function getSection ( $name, $throwException = true ) {
+	public function getSection ( $name, $throwException = \true ) {
 		/** @var array $sections */
 		$sections = $name;
 
-		if ( !is_array($name) ) {
+		if ( !\is_array($name) ) {
 			$sections = [$name];
 		}
 
+		/** @var array $list */
 		$list = [];
 
 		foreach ( $sections as $section ) {
@@ -186,8 +211,8 @@ class Component {
 			$list[] = $this->sections[$section];
 		}
 
-		return count($list) == 1
-			? array_shift($list)
+		return 1 == \count($list)
+			? \array_shift($list)
 			: $list;
 	}
 
@@ -197,27 +222,26 @@ class Component {
 	 * @param boolean $throwException (optional) True will throw exception when section name not found (default: false)
 	 * @throws \yii\base\InvalidValueException When section name is empty
 	 * @throws \yii\base\UnknownPropertyException When section name not found
-	 * @return True on exist | False when not found
+	 * @return True when exist | False otherwise
 	 */
-	public function sectionExists ( $name, $throwException = true ) {
+	public function sectionExists ( $name, $throwException = \true ) {
 		if ( empty($name) ) {
 			if ( $throwException ) {
 				throw new InvalidValueException ('Section name cannot be empty');
 			}
 
-			return false;
+			return \false;
 		}
 
-		if ( !array_key_exists($name, $this->sections) ) {
-
+		if ( !\array_key_exists($name, $this->sections) ) {
 			if ( $throwException ) {
 				throw new UnknownPropertyException ("Section '{$name}' not found");
 			}
 
-			return false;
+			return \false;
 		}
 
-		return true;
+		return \true;
 	}
 
 	/**
@@ -225,22 +249,24 @@ class Component {
 	 * @param boolean $asUrl (optional) True will return files url only (default: false)
 	 * @param boolean $unique (optional) True will remove duplicate elements (default: true)
 	 * @return array List of css section files
+	 * @throws \yii\base\UnknownPropertyException
 	 */
-	public function getCssFiles ( $asUrl = true, $unique = true ) {
-		$files = $this->getSection('css')->getFiles(true, $unique);
+	public function getCssFiles ( $asUrl = \true, $unique = \true ) {
+		/** @var array|null|\yii2cdn\File[] $files */
+		$files = $this->getSection('css')->getFiles(\true, $unique);
 
 		if ( !$asUrl ) {
 			return $files;
 		}
 
-		return array_values($files);
+		return \array_values($files);
 	}
 
 	/**
 	 * Register css and js files into current view
 	 * @see Component::registerCssFiles() for $cssOptions
 	 * @see Component::registerJsFiles() for $jsOptions
-	 * 
+	 *
 	 * @param array $cssOptions (optional) Optional pass to css files
 	 * @param array $jsOptions (optional) Optional pass to js files
 	 * @param callable|null $callback (optional) Perform callback on each registering file
@@ -249,8 +275,9 @@ class Component {
 	 *      // some logic here ...
 	 *    }
 	 * </code>
+	 * @throws \yii\base\UnknownPropertyException
 	 */
-	public function register ( array $cssOptions = [], array $jsOptions = [], callable $callback = null ) {
+	public function register ( array $cssOptions = [], array $jsOptions = [], callable $callback = \null ) {
 		$this->registerCssFiles ( $cssOptions, $callback );
 		$this->registerJsFiles ( $jsOptions, $callback );
 	}
@@ -269,13 +296,13 @@ class Component {
 	 *      // some logic here ...
 	 *    }
 	 * </code>
+	 * @throws \yii\base\UnknownPropertyException
 	 */
-	public function registerCssFiles( array $options = [], callable $callback = null ) {
-		if ( !$this->sectionExists('css', false ) ) {
-			return;
+	public function registerCssFiles( array $options = [], callable $callback = \null ) {
+		if ( $this->sectionExists('css', \false ) ) {
+			$this->getSection('css')
+				->registerFilesAs ('css', \null, $options, $callback );
 		}
-
-		$this->getSection('css')->registerFilesAs ('css', null, $options, $callback );
 	}
 
 	/**
@@ -298,13 +325,12 @@ class Component {
 	 *      // some logic here ...
 	 *    }
 	 * </code>
+	 * @throws \yii\base\UnknownPropertyException
 	 */
-	public function registerJsFiles( array $options = [], callable $callback = null ) {
-		if ( !$this->sectionExists('js', false ) ) {
-			return;
+	public function registerJsFiles( array $options = [], callable $callback = \null ) {
+		if ( $this->sectionExists('js', \false ) ) {
+			$this->getSection('js')->registerFilesAs('js', \null, $options, $callback );
 		}
-
-		$this->getSection('js')->registerFilesAs('js', null, $options, $callback );
 	}
 
 	/**
@@ -320,13 +346,15 @@ class Component {
 	 * @throws \yii\base\UnknownPropertyException When file id not found
 	 * @return \yii2cdn\File|string|null Section file | File Url | Null when not found
 	 */
-	public function getFileByRoot ( $root, $asUrl = false, $throwException = true ) {
+	public function getFileByRoot ( $root, $asUrl = \false, $throwException = \true ) {
 		// validate the root
-		if ( !is_string($root) || substr_count($root, '/') != 1 ) {
+		if ( !\is_string($root) || 1 != \substr_count($root, '/') ) {
 			throw new InvalidParamException ("Invalid root '{$root}' given");
 		}
 
-		list ($sectionId, $fileId) = explode('/', $root);
+		/** @var string $sectionId */
+		/** @var string $fileId */
+		list ($sectionId, $fileId) = \explode('/', $root);
 
 		return $this->getSection($sectionId, $throwException)
 			->getFileById ($fileId, $asUrl, $throwException);

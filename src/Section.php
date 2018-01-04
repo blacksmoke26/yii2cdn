@@ -1,17 +1,17 @@
 <?php
-
 /**
- * @copyright Copyright (c) 2016 Junaid Atari
- * @link http://junaidatari.com Website
+ * @author Junaid Atari <mj.atari@gmail.com>
+ * @link http://junaidatari.com Author Website
  * @see http://www.github.com/blacksmoke26/yii2-cdn
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
  */
 
 namespace yii2cdn;
 
+use Yii;
+use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
-use \yii\base\InvalidConfigException;
-use \yii\base\UnknownPropertyException;
+use yii\base\UnknownPropertyException;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -21,7 +21,7 @@ use yii\helpers\ArrayHelper;
  * @author Junaid Atari <mj.atari@gmail.com>
  *
  * @access public
- * @version 0.1
+ * @version 0.2
  */
 class Section {
 	/**
@@ -32,71 +32,71 @@ class Section {
 	use \yii2cdn\traits\Attributes;
 
 	/**
-	 * Section base Url
-	 * @var string
+	 * @var string Section base Url
 	 */
 	protected $baseUrl;
 
 	/**
-	 * Base Path
-	 * @var string
+	 * @var string Base Path
 	 */
 	protected $basePath;
 
 	/**
-	 * Component ID
-	 * @var string
+	 * @var string Component ID
 	 */
 	protected $component;
 
 	/**
-	 * Section name
-	 * @var string
+	 * @var string Section name
 	 */
 	protected $section;
 
 	/**
-	 * Section attributes
-	 * @var array
+	 * @var array Section attributes
 	 */
 	protected $attributes = [];
 
 	/**
-	 * Section files
-	 * @var File[]
+	 * @var File[] Section files
 	 */
 	protected $files;
 
 	/**
-	 * Section file class
-	 * @var string
+	 * @var string Section file class
 	 */
 	protected $fileClass;
 
 	/**
 	 * ComponentSection constructor.
-	 *
 	 * @param array $config Configuration object
+	 * @throws \yii\base\UnknownPropertyException
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	public function __construct ( array $config ) {
-
 		$this->component = $config['component'];
 		$this->section = $config['section'];
 		$this->baseUrl = $config['baseUrl'];
 		$this->basePath = $config['basePath'];
 		$this->fileClass = $config['fileClass'];
 		$this->attributes = $config['attributes'];
-		if ( !count($config['files']) ) {
+
+		if ( !isset($config['files'])
+			|| !\is_array($config['files'])
+			|| !\count($config['files']) ) {
 			return;
 		}
 
 		foreach ( $config['files'] as $id => $props ) {
+			/** @var array $options */
+			/** @var array $_attributes */
 			$options = $_attributes = [];
 
-			if ( count($config['fileAttributes']) ) {
+			if ( isset($config['fileAttributes'])
+				&& \is_array($config['fileAttributes'])
+				&& \count($config['fileAttributes']) ) {
 
 				foreach ( $config['fileAttributes'] as $k => $v ) {
-					$inf = explode('/', $k);
+					$inf = \explode('/', $k);
 
 					if ( $k === "@options/{$id}" ) {
 						$options = $v;
@@ -107,30 +107,34 @@ class Section {
 				}
 			}
 
+			/** @var string $basePath */
 			$basePath = $this->basePath . DIRECTORY_SEPARATOR . $props['file'];
 
 			// Defined all files attributes
-			if ( ($val = $this->getAttr('@filesAttrs') ) !== null ) {
-				$_attributes = ArrayHelper::merge((array) $this->getAttr('@filesAttrs'), $_attributes);
+			if ( \null !== ($val = $this->getAttr('@filesAttrs') ) ) {
+				$_attributes = ArrayHelper::merge(
+					(array) $this->getAttr('@filesAttrs'),
+					$_attributes
+				);
 			}
 
-			if ( isset($props['_component']) && isset($config['preComponents'][$props['_component']]) ) {
+			if ( isset($props['_component'])
+				&& isset($config['preComponents'][$props['_component']]) ) {
 				/** @var Section $comp */
 				$comp = $config['preComponents'][$props['_component']]->getSection($props['_section']);
-
 				$basePath = $comp->getPath($props['file']);
 			}
 
 			/** @var File $fileNode */
-			$fileNode = \Yii::createObject($this->fileClass, [[
-				'fileId'=>$id,
-				'fileUrl'=>$props['url'],
-				'fileName'=>$props['file'],
-				'basePath'=>$basePath,
-				'section'=> (!isset($props['_section']) ? $this->section : $props['_section']),
+			$fileNode = Yii::createObject($this->fileClass, [[
+				'fileId' => $id,
+				'fileUrl' => $props['url'],
+				'fileName' => $props['file'],
+				'basePath' => $basePath,
+				'section' => (!isset($props['_section']) ? $this->section : $props['_section']),
 				'component'=> $this->component,
-				'options'=>$options,
-				'attributes'=>$_attributes,
+				'options' => $options,
+				'attributes' => $_attributes,
 			]]);
 
 			unset($config['preComponents']);
@@ -155,9 +159,13 @@ class Section {
 	 * @param boolean $asId (optional) True will return component id (default: false)
 	 * @param string $property (optional) Property name of `cdn` defined in @app/config/main.php (default: 'cdn')
 	 * @return Component|string Component object | Component ID
+	 * @throws \yii\base\InvalidConfigException
 	 */
-	public function getComponent ( $asId = false, $property = 'cdn' ) {
-		return $asId ? $this->component : \Yii::$app->get($property)->get ( $this->component );
+	public function getComponent ( $asId = \false, $property = 'cdn' ) {
+		return $asId
+			? $this->component
+			: Yii::$app->get ($property)
+				->get ($this->component);
 	}
 
 	/**
@@ -186,24 +194,32 @@ class Section {
 	 * @return File[]|array List of files | List of sections and their files [SECTION=>FILES_LIST][]
 	 */
 	public function callback ( callable $callback, array $options = [ ], $throwException = true ) {
-		if ( !is_callable($callback) ) {
+		if ( !\is_callable($callback) ) {
 			throw new \yii\base\InvalidParamException("Option 'callback' must be a function");
 		}
 
 		// @property: boolean listOnly
-		$listOnly = isset($options['listOnly']) ? boolval($options['listOnly']) : false;
+		$listOnly = isset($options['listOnly'])
+			? \boolval($options['listOnly'])
+			: \false;
 
 		// @property: boolean noIds
-		$noIds = isset($options['noIds']) ? boolval($options['noIds']) : false;
+		$noIds = isset($options['noIds'])
+			? \boolval($options['noIds'])
+			: \false;
 
 		// @property: boolean unique
-		$unique = isset($options['unique']) ? boolval($options['unique']) : false;
+		$unique = isset($options['unique'])
+			? \boolval($options['unique'])
+			: \false;
 
+		/** @var array $excluded */
+		/** @var array $includeOnly */
 		$excluded = $includeOnly = [];
 
 		// @property: array excluded
 		if ( isset($options['excluded']) ) {
-			if ( !is_array($options['excluded']) && $throwException ) {
+			if ( !\is_array ($options['excluded']) && $throwException ) {
 				throw new InvalidConfigException("Option 'excluded' must be an array");
 			}
 
@@ -212,60 +228,70 @@ class Section {
 
 		// @property: array includeOnly
 		if ( isset($options['includeOnly']) ) {
-			if ( !is_array($options['excluded']) && $throwException ) {
+			if ( !\is_array ($options['excluded']) && $throwException ) {
 				throw new InvalidConfigException("Option 'includeOnly' must be an array");
 			}
 
 			$includeOnly = $options['includeOnly'];
 		}
 
-		$files = $this->getFiles(false, $unique);
+		/** @var array $files */
+		$files = $this->getFiles (\false, $unique);
 
-		if ( !count($files) ) {
+		if ( !\is_array ($files) || !\count ($files) ) {
 			return [];
 		}
 
 		/** @var File $file */
 		foreach ( $files as $file ) {
-
+			/** @var string $fileId */
 			$fileId = $file->getId();
+			/** @var string $fileUrl */
 			$fileUrl = $file->getUrl();
 
 			// Skipped files if excluded list isn't empty and id isn't present
-			if ( in_array( $fileId, $excluded, true ) ) {
+			if ( \in_array ($fileId, $excluded, \true) ) {
+				/** @var mixed $op */
+				$op = \is_callable ($callback)
+					? $callback($fileUrl, $fileId, \true, \false)
+					: \null;
 
-				$op = is_callable($callback)
-					? $callback( $fileUrl, $fileId, true, false )
-					: null;
-
-				if ( is_null($op) || $op === false ) {
+				if ( \null === $op || \false === $op ) {
 					continue;
 				}
 			}
 
-			$op = is_callable($callback)
-				? $callback( $fileUrl, $fileId, false, false )
-				: null;
+			/** @var mixed|null $op */
+			$op = \is_callable($callback)
+				? $callback( $fileUrl, $fileId, \false, \false )
+				: \null;
 
-			if ( $op === false ) {
+			if ( \false === $op ) {
 				continue;
 			}
 
 			// Skipped files if includeOnly list isn't empty and id isn't present
-			if ( count($includeOnly) && !in_array($fileId, $includeOnly) ) {
-				$op = is_callable($callback)
-					? $callback( $fileUrl, $fileId, false, true )
-					: null;
+			if ( (\is_array($includeOnly) && \count($includeOnly))
+				&& !\in_array($fileId, $includeOnly) ) {
 
-				if ( is_null($op) || $op === false ) {
+				/** @var mixed|null|false $op */
+				$op = \is_callable($callback)
+					? $callback( $fileUrl, $fileId, \false, \true )
+					: \null;
+
+				if ( \null === $op || \false === $op ) {
 					continue;
 				}
 			}
 
-			$files[$fileId] = $listOnly ? $fileUrl : $file;
+			$files[$fileId] = $listOnly
+				? $fileUrl
+				: $file;
 		}
 
-		return $noIds ? array_values($files) : $files;
+		return $noIds
+			? \array_values ($files)
+			: $files;
 	}
 
 	/**
@@ -274,14 +300,15 @@ class Section {
 	 * @param boolean $unique (optional) True will remove duplicate elements (default: false)
 	 * @return File[]|array List of section object/[key=>value] pair of section files
 	 */
-	public function getFiles ( $asArray = false, $unique = false ) {
+	public function getFiles ( $asArray = \false, $unique = \false ) {
 		if ( !$asArray ) {
 			return $this->files;
 		}
 
+		/** @var File[] $list */
 		$list = [];
 
-		if ( !count($this->files) ) {
+		if ( !\is_array($this->files) || !\count($this->files) ) {
 			return $list;
 		}
 
@@ -290,7 +317,7 @@ class Section {
 		}
 
 		if ( $unique ) {
-			$list = array_unique($list);
+			$list = \array_unique($list);
 		}
 
 		return $list;
@@ -304,17 +331,19 @@ class Section {
 	 * @throws \yii\base\UnknownPropertyException When file id not found
 	 * @return \yii2cdn\File|string|null Section file | File Url | Null when not found
 	 */
-	public function getFileById ( $id, $asUrl = false, $throwException = true ) {
-		if ( !array_key_exists($id, $this->files) ) {
+	public function getFileById ( $id, $asUrl = \false, $throwException = \true ) {
+		if ( !\array_key_exists($id, $this->files) ) {
 
 			if ( $throwException ) {
 				throw new UnknownPropertyException ( "Unknown file id '{$id}' given" );
 			}
 
-			return null;
+			return \null;
 		}
 
-		return !$asUrl ? $this->files[$id] : $this->files[$id]->getUrl();
+		return !$asUrl
+			? $this->files[$id]
+			: $this->files[$id]->getUrl();
 	}
 
 	/**
@@ -328,50 +357,55 @@ class Section {
 	 *      // some logic here ...
 	 *    }
 	 * </code>
+	 * @throws \yii\base\InvalidConfigException
 	 */
-	public function registerFilesAs ( $type, $list, array $options = [], callable $callback = null ) {
-		if ( !is_string($type) || empty($type) ) {
+	public function registerFilesAs ( $type, $list, array $options = [], callable $callback = \null ) {
+		if ( !\is_string($type) || empty($type) ) {
 			throw new InvalidParamException ("Type must be a string and cannot empty");
 		}
 
-		if ( is_null($list) ) {
+		if ( \null === $list ) {
 			$list = $this->getFiles();
 		}
 
-		$itr = new \ArrayIterator($list);
+		/** @var \ArrayIterator $iterator */
+		$iterator = new \ArrayIterator($list);
 
-		if ( !$itr->count() ) {
+		if ( !$iterator->count() ) {
 			throw new InvalidParamException ('List cannot be empty');
 		}
 
-		while ( $itr->valid() ) {
+		while ( $iterator->valid() ) {
+			$file = $iterator->current();
 
-			$file = $itr->current();
-			$fileId = (is_int($itr->key()) ? null : $itr->key());
+			/** @var string $fileId */
+			$fileId = \is_int($iterator->key()
+				? \null
+				: $iterator->key());
 
-			if ( !$itr->current() instanceof $this->fileClass ) {
+			if ( !$iterator->current() instanceof $this->fileClass ) {
 
 				/** @var File $file */
-				$file =  \Yii::createObject($this->fileClass, [
+				$file =  Yii::createObject($this->fileClass, [
 					[
-						'fileUrl' => $itr->current(),
+						'fileUrl' => $iterator->current(),
 						'fileId' => $fileId
 					]
 				]);
 			}
 
-			if ( $type === 'css' ) {
+			if ( 'css' === $type ) {
 				$file->registerAsCssFile($options);
-			} else if ( $type === 'js' ) {
+			} else if ( 'js' === $type ) {
 				$file->registerAsJsFile($options);
 			}
 
 			// Apply callback to each file
-			if ( is_callable($callback) ) {
-				call_user_func_array($callback, [$file->getUrl(), $options, $file->getId()] );
+			if ( \is_callable($callback) ) {
+				\call_user_func_array($callback, [$file->getUrl(), $options, $file->getId()] );
 			}
 
-			$itr->next();
+			$iterator->next();
 		}
 	}
 }

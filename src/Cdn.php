@@ -1,20 +1,21 @@
 <?php
-
 /**
- * @copyright Copyright (c) 2016 Junaid Atari
- * @link http://junaidatari.com Website
+ * @author Junaid Atari <mj.atari@gmail.com>
+ * @link http://junaidatari.com Author Website
  * @see http://www.github.com/blacksmoke26/yii2-cdn
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
  */
 
 namespace yii2cdn;
 
+use Yii;
 use yii\base\InvalidConfigException;
-use yii\base\UnknownPropertyException;
 use yii\base\InvalidParamException;
+use yii\base\UnknownPropertyException;
 use yii\helpers\ArrayHelper;
 
-defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
+\defined('YII2CDN_OFFLINE')
+	or \define('YII2CDN_OFFLINE', \false);
 
 /**
  * Yii2 CDN Component
@@ -23,7 +24,7 @@ defined('YII2CDN_OFFLINE') or define('YII2CDN_OFFLINE', false);
  * @author Junaid Atari <mj.atari@gmail.com>
  *
  * @access public
- * @version 0.1
+ * @version 0.2
  */
 class Cdn extends \yii\base\Component {
 	/**
@@ -33,69 +34,60 @@ class Cdn extends \yii\base\Component {
 	use \yii2cdn\traits\File;
 
 	/**
-	 * Base url to cdn directory
-	 * @var string
+	 * @var string Base url to cdn directory
 	 */
-	public $baseUrl = null;
+	public $baseUrl = \null;
 
 	/**
-	 * base path to cdn directory
-	 * @var string
+	 * @var string base path to cdn directory
 	 */
-	public $basePath = null;
+	public $basePath = \null;
 
 	/**
-	 * Custom url aliases, replaces with @alias(*) in files url
+	 * @var array Custom url aliases, replaces with @alias(*) in files url
 	 * Usage:
 	 *  ['xyz' => '/url/to', ...]
-	 * @var array
 	 */
 	public $aliases = [];
 
 	/**
-	 * CDN component class
+	 * @var string CDN component class
 	 * default: \yii2cdn\Component
-	 * @var string
 	 */
 	public $componentClass = '\yii2cdn\Component';
 
 	/**
-	 * CDN components configuration parser class
+	 * @var string CDN components configuration parser class
 	 * default: \yii2cdn\ComponentConfigParser
-	 * @var string
 	 */
 	public $configParserClass = '\yii2cdn\ConfigParser';
 
 	/**
-	 * CDN component section class
+	 * @var string CDN component section class
 	 * default: \yii2cdn\ComponentSection
-	 * @var string
 	 */
 	public $sectionClass = '\yii2cdn\Section';
 
 	/**
-	 * CDN Configuration File Class
+	 * @var string CDN Configuration File Class
 	 * default: \yii2cdn\ConfigFile
-	 * @var string
 	 */
 	public $configFileClass = '\yii2cdn\ConfigFile';
 
 	/**
-	 * CDN component section file class
+	 * @var string CDN component section file class
 	 * default: \yii2cdn\SectionFile
-	 * @var string
 	 */
 	public $fileClass = '\yii2cdn\File';
 
 	/**
-	 * CDN component configuration loader class
+	 * @var string CDN component configuration loader class
 	 * default: \yii2cdn\ConfigLoader
-	 * @var string
 	 */
 	public $configLoaderClass = '\yii2cdn\ConfigLoader';
 
 	/**
-	 * CDN components configuration files list
+	 * @var array CDN components configuration files list
 	 * Usage:
 	 * <code>
 	 *  1. 'path/to/cdn-config.php' : main file path
@@ -103,44 +95,37 @@ class Cdn extends \yii\base\Component {
 	 *  3. ['path/to/cdn-config.php', 'offline'=>false] : online cdn file path
 	 *  4. ['path/to/cdn-config.php', 'offline'=>true] : offline cdn file path
 	 * </code>
-	 * @var array
 	 */
 	public $configs = [];
 
 	/**
-	 * CDN components configuration
-	 * @var array
+	 * @var array CDN components configuration
 	 */
 	public $components = [];
 
 	/**
-	 * (optional) Add the Sections name only to be parsed (other will be skipped)
+	 * @var array (optional) Add the Sections name only to be parsed (other will be skipped)
 	 * default: (<code>css</code>, <code>js</code>)
-	 * @var array
 	 */
 	public $sections = ['css', 'js'];
 
 	/**
-	 * Cache Key for caching built components configuration to load fast
-	 * @var string
+	 * @var string Cache Key for caching built components configuration to load fast
 	 */
-	public $cacheKey = null;
+	public $cacheKey = \null;
 
 	/**
-	 * Enable storing components configuration in cache
-	 * @var boolean
+	 * @var boolean Enable storing components configuration in cache
 	 */
-	public $enableCaching = false;
+	public $enableCaching = \false;
 
 	/**
-	 * Components registered under cdn
-	 *
-	 * @var array
+	 * @var array Components registered under cdn
 	 */
 	protected $_regComponents = [];
 
 	/**
-	 * Component intializer
+	 * Component initializer
 	 * @throws \yii\base\InvalidConfigException when property is empty
 	 */
 	public function init () {
@@ -164,10 +149,11 @@ class Cdn extends \yii\base\Component {
 	 * Get a ConfigFile Object
 	 * @param string $file
 	 * @return ConfigFile
+	 * @throws \yii\base\InvalidConfigException
 	 */
-	protected function getFileConfigObject ( $file = null ) {
+	protected function getFileConfigObject ( $file = \null ) {
 		/** @var ConfigFile $fileConfig */
-		return \Yii::createObject($this->configFileClass, [ [
+		return Yii::createObject($this->configFileClass, [ [
 			'path' => $file,
 			'componentClass' => $this->componentClass,
 			'configParserClass' => $this->configParserClass,
@@ -185,24 +171,26 @@ class Cdn extends \yii\base\Component {
 	 * Import components from configuration array
 	 *
 	 * @param array $config Components configuration
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	protected function loadComponents ( array $config ) {
 		/** @var ConfigFile $configFile */
-		$configFile = $this->getFileConfigObject ( null );
+		$configFile = $this->getFileConfigObject (\null);
 
 		$this->_regComponents = ArrayHelper::merge (
 			$this->_regComponents,
-			$configFile->get ( ( $config ) )
+			$configFile->get ($config)
 		);
 	}
 
 	/**
 	 * Import components from configuration file
 	 * @param string $path Components configuration file path
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	protected function loadComponentsFile ( $path ) {
 		/** @var ConfigFile $configFile */
-		$configFile = $this->getFileConfigObject( $path );
+		$configFile = $this->getFileConfigObject ($path);
 
 		$this->_regComponents = ArrayHelper::merge(
 			$this->_regComponents,
@@ -212,28 +200,27 @@ class Cdn extends \yii\base\Component {
 
 	/**
 	 * Build a components list
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	protected function buildComponentsCache () {
 		if ( $this->enableCaching ) {
+			/** @var mixed|false $cached */
+			$cached = Yii::$app->cache->get ($this->cacheKey);
 
-			$cached = \Yii::$app->cache->get ( $this->cacheKey );
-
-			if ( $cached !== false ) {
+			if ( \false !== $cached ) {
 				$this->_regComponents = $cached;
 				return;
 			}
 		}
 
 		// @property `components` : load CDN components config
-		if ( is_array($this->components) && !empty($this->components) ) {
+		if ( \is_array($this->components) && !empty($this->components) ) {
 			$this->loadComponents($this->components);
 		}
 
 		// @property `configs` : load CDN components config files
-		if ( is_array($this->configs) && !empty($this->configs) ) {
-
+		if ( \is_array($this->configs) && !empty($this->configs) ) {
 			foreach ( $this->configs as $cfg ) {
-
 				if ( empty($cfg)) {
 					continue;
 				}
@@ -243,15 +230,16 @@ class Cdn extends \yii\base\Component {
 		}
 
 		if ( $this->enableCaching ) {
-			\Yii::$app->cache->set($this->cacheKey, $this->_regComponents);
+			Yii::$app->cache->set($this->cacheKey, $this->_regComponents);
 		}
 	}
 
 	/**
 	 * Clear cache and rebuild components
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	public function refresh () {
-		\Yii::$app->cache->delete( $this->cacheKey );
+		Yii::$app->cache->delete ($this->cacheKey);
 		$this->buildComponentsCache();
 	}
 
@@ -261,7 +249,9 @@ class Cdn extends \yii\base\Component {
 	 * @return bool
 	 */
 	public static function isOnline () {
-		return !defined ( 'YII2CDN_OFFLINE' ) ? true : !YII2CDN_OFFLINE;
+		return !\defined ('YII2CDN_OFFLINE')
+			? \true
+			: !YII2CDN_OFFLINE;
 	}
 
 	/**
@@ -269,10 +259,11 @@ class Cdn extends \yii\base\Component {
 	 * @see Cdn::exists()
 	 * @param string $id Component ID
 	 * @return Component|null Component Object
+	 * @throws \yii\base\UnknownPropertyException
 	 */
-	public function get ( $id, $throwException = true ) {
+	public function get ( $id, $throwException = \true ) {
 		if ( !$this->exists($id, $throwException) ) {
-			return null;
+			return \null;
 		}
 
 		return $this->_regComponents[$id];
@@ -285,16 +276,16 @@ class Cdn extends \yii\base\Component {
 	 * @throws \yii\base\UnknownPropertyException When unknown component id given
 	 * @return boolean True when exist, False when undefined
 	 */
-	public function exists ( $id, $throwException = true ) {
-		if ( !array_key_exists($id, $this->_regComponents) ) {
+	public function exists ( $id, $throwException = \true ) {
+		if ( !\array_key_exists($id, $this->_regComponents) ) {
 			if ( $throwException ) {
 				throw new UnknownPropertyException ("Unknown cdn component '{$id}'");
-			} else {
-				return false;
 			}
+
+			return \false;
 		}
 
-		return true;
+		return \true;
 	}
 
 	/**
@@ -310,15 +301,19 @@ class Cdn extends \yii\base\Component {
 	 * @throws \yii\base\UnknownPropertyException When section name not found
 	 * @return \yii2cdn\Section Section Object
 	 */
-	public function getSectionByRoot ( $root, $throwException = true ) {
+	public function getSectionByRoot ( $root, $throwException = \true ) {
 		// validate the root
-		if ( !is_string ( $root ) || substr_count ( $root, '/' ) != 1 ) {
+		if ( !\is_string ( $root )
+			|| 1 != \substr_count ( $root, '/' ) ) {
 			throw new InvalidParamException ( "Invalid section root '{$root}' given" );
 		}
 
-		list ( $componentId, $sectionId ) = explode ( '/', $root );
+		/** @var string $componentId */
+		/** @var string $sectionId */
+		list ($componentId, $sectionId) = \explode ('/', $root);
 
-		return $this->get ( $componentId, $throwException )->getSection ( $sectionId, $throwException );
+		return $this->get ($componentId, $throwException)
+			->getSection ($sectionId, $throwException);
 	}
 
 	/**
@@ -336,15 +331,18 @@ class Cdn extends \yii\base\Component {
 	 * @throws \yii\base\UnknownPropertyException When file id not found
 	 * @return \yii2cdn\File|string|null Section file | File Url | Null when not found
 	 */
-	public function getFileByRoot ( $root, $asUrl = false, $throwException = true ) {
+	public function getFileByRoot ( $root, $asUrl = \false, $throwException = \true ) {
 		// validate the root
-		if ( !is_string($root) || substr_count($root, '/') != 2 ) {
+		if ( !\is_string($root) || 2 != \substr_count($root, '/') ) {
 			throw new InvalidParamException ("Invalid file root '{$root}' given");
 		}
 
-		list ($componentId, $sectionId, $fileId) = explode('/', $root);
+		/** @var string $componentId */
+		/** @var string $sectionId */
+		list ($componentId, $sectionId, $fileId) = \explode ('/', $root);
 
-		return $this->get($componentId, $throwException)->getFileByRoot( "$sectionId/$fileId", $asUrl, $throwException );
+		return $this->get ($componentId, $throwException)
+			->getFileByRoot ("$sectionId/$fileId", $asUrl, $throwException);
 	}
 
 	/**
@@ -361,13 +359,12 @@ class Cdn extends \yii\base\Component {
 	 * @throws \yii\base\InvalidConfigException When the callback parameter is not a function
 	 */
 	public function whenOffline ( $callback, $property = 'cdn' ) {
-
-		if ( !is_callable($callback) ) {
+		if ( !\is_callable($callback) ) {
 			throw new InvalidParamException ("Parameter '{callback}' should be a function");
 		}
 
 		if ( !self::isOnline()  ) {
-			call_user_func_array( $callback, [\Yii::$app->get($property)] );
+			\call_user_func_array( $callback, [Yii::$app->get($property)] );
 		}
 
 		return $this;
@@ -387,13 +384,12 @@ class Cdn extends \yii\base\Component {
 	 * @throws \yii\base\InvalidConfigException When the callback parameter is not a function
 	 */
 	public function whenOnline ( $callback, $property = 'cdn' ) {
-
-		if ( !is_callable($callback) ) {
+		if ( !\is_callable($callback) ) {
 			throw new InvalidParamException ("Parameter '{callback}' should be a function");
 		}
 
 		if ( self::isOnline()  ) {
-			call_user_func_array( $callback, [\Yii::$app->get($property)] );
+			\call_user_func_array( $callback, [Yii::$app->get($property)] );
 		}
 
 		return $this;

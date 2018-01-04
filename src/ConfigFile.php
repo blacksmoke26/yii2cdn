@@ -1,13 +1,14 @@
 <?php
-
 /**
- * @copyright Copyright (c) 2016 Junaid Atari
- * @link http://junaidatari.com Website
+ * @author Junaid Atari <mj.atari@gmail.com>
+ * @link http://junaidatari.com Author Website
  * @see http://www.github.com/blacksmoke26/yii2-cdn
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
  */
 
 namespace yii2cdn;
+
+use Yii;
 
 /**
  * CDN Configuration File handler
@@ -16,27 +17,24 @@ namespace yii2cdn;
  * @author Junaid Atari <mj.atari@gmail.com>
  *
  * @access public
- * @version 0.1
+ * @version 0.2
  */
 class ConfigFile {
 
 	/**
-	 * Absolute config file path
-	 * @var string
+	 * @var string Absolute config file path
 	 */
 	protected $path;
 
 	/**
-	 * Component Configuration
-	 * @var array
+	 * @var array Component Configuration
 	 */
 	protected $config = [];
 
 	/**
-	 * File is offline or not
-	 * @var boolean
+	 * @var boolean File is offline or not
 	 */
-	protected $offline = false;
+	protected $offline = \false;
 
 	/**
 	 * Constructor function
@@ -53,22 +51,24 @@ class ConfigFile {
 
 	/**
 	 * Load the CDN config
-	 * @param string|object $config CDN Config
+	 * @param string|array $config CDN Config
+	 * @return void
 	 */
 	protected function load ( $config ) {
-		if ( is_string($config) ) {
+		if ( \is_string ($config) ) {
 			$this->path = $config;
 			return;
 		}
 
 		$this->path = $config[0];
-		$this->offline = array_key_exists( 'offline', $config )
+		$this->offline = \array_key_exists( 'offline', $config )
 			&& $config['offline'];
 	}
 
 	/**
 	 * Get the configuration
 	 * @return array
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	protected function getListOf () {
 		if ( Cdn::isOnline() && $this->offline ) {
@@ -76,11 +76,10 @@ class ConfigFile {
 		}
 
 		/** @var ConfigLoader $loader */
-		$loader = \Yii::createObject( $this->config['configLoaderClass'] );
+		$loader = Yii::createObject( $this->config['configLoaderClass'] );
 		$loader->online($this->getPath());
 
 		return $loader->asArray();
-
 	}
 
 	/**
@@ -88,7 +87,7 @@ class ConfigFile {
 	 * @return string
 	 */
 	public function getPath() {
-		return \Yii::getAlias( $this->path );
+		return Yii::getAlias( $this->path );
 	}
 
 	/**
@@ -96,6 +95,7 @@ class ConfigFile {
 	 * @see ConfigFile::getBuiltComponents()
 	 * @param array $list (optional) Components configuration
 	 * @return array
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	public function get ( array $list = [] ) {
 		return $this->getBuiltComponents($list);
@@ -107,19 +107,24 @@ class ConfigFile {
 	 * @throws \yii\base\InvalidConfigException
 	 */
 	protected function getBuiltComponents ( array $list = [] ) {
-		$list = count($list) ? $list : $this->getListOf();
+		/** @var array $collection */
+		$collection = \count($list)
+			? $list
+			: $this->getListOf();
 
-		if ( !count($list) ) {
+		if ( !\count($collection) ) {
 			return [];
 		}
 
+		/** @var array $prebuiltList */
 		$prebuiltList = [];
+
+		/** @var array $builtList */
 		$builtList = [];
 
-		foreach ( $list as $id=>$config ) {
-
+		foreach ( $collection as $id => $config ) {
 			/** @var ConfigParser $parser */
-			$parser = \Yii::createObject($this->config['configParserClass'], [[
+			$parser = Yii::createObject($this->config['configParserClass'], [[
 				'id' => $id,
 				'config' => $config,
 				'baseUrl' => $this->config['baseUrl'],
@@ -130,23 +135,24 @@ class ConfigFile {
 				'aliases' =>$this->config['aliases'],
 			]]);
 
-			if ( ($props = $parser->getParsed()) === null ) {
+			if ( \null === ($props = $parser->getParsed()) ) {
 				continue;
 			}
 
 			$prebuiltList[$id] = $props;
 		}
 
+		/** @var string $parserClass */
 		$parserClass = $this->config['configParserClass'];
 
 		// Replace @component* tags from files name
+		/** @var array $postBuiltList */
 		$postBuiltList = $parserClass::touchComponentTags($prebuiltList);
 
-		foreach ( $postBuiltList as $id=>$data ) {
-
+		foreach ( $postBuiltList as $id => $data ) {
 			$data['preComponents'] = $builtList;
 			/** @var Component $component */
-			$component = \Yii::createObject( $this->config['componentClass'], [$data] );
+			$component = Yii::createObject ($this->config['componentClass'], [$data]);
 
 			$builtList[$id] = $component;
 		}
