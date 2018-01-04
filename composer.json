@@ -3,7 +3,7 @@
     "description": "A Yii Framework 2 component for using assets in different environments (Local/CDNs)",
     "keywords": ["yii2", "cdn", "assets", "extension"],
     "homepage": "https://github.com/blacksmoke26/yii2cdn",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "type": "yii2-extension",
     "license": "Apache-2.0",
 	"support":{
@@ -12,15 +12,15 @@
 		"issues" : "https://github.com/blacksmoke26/yii2cdn/issues"
 	},
     "require": {
-        "php": "^5.4.0 || ^7.0",
-        "yiisoft/yii2": "~2.0.3"
+        "php": "^5.6.0 || ^7.0",
+        "yiisoft/yii2": "^2.0.13.1"
     },
     "authors": [
         {
             "name": "Junaid Atari",
             "email": "mj.atari@gmail.com",
             "homepage": "http://junaidatari.com",
-            "role": "Lead Developer"
+            "role": "Author"
         }
     ],
     "minimum-stability": "stable",
