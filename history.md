@@ -1,6 +1,12 @@
 Yii2 CDN History
 =======================
 
+## v1.0.0 (stable)
+- Production ready
+- Bug fixed: Undefined index: preComponents
+- Updated Example to jQuery Fancybox library.
+- Various improvements.
+
 ## v0.2.4 (hotfix)
 
 - Bug fixed: Undefined index: @sectionsAttrs
