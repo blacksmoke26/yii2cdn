@@ -11,7 +11,7 @@ A Yii Framework 2 component for using assets in different environments (Local/CD
 
 **Production Ready**: Used in several real projects is enough to prove its stability.
 
-**Minimumn requirements:**: PHP 7.0+ / Yii2 Framework 2.0.12+
+**Minimum requirements:** PHP 7.0+ / Yii2 Framework 2.0.12+
 
 **Bugs / Feature Request?:** Create your [issue here](https://github.com/blacksmoke26/yii2cdn/issues).
 
