@@ -27,7 +27,7 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist blacksmoke26/yii2cdn "*"
+composer require --prefer-dist blacksmoke26/yii2cdn "*"
 ```
 
 or add
@@ -58,34 +58,34 @@ to the require section of your `composer.json` file.
 ```php
 // ...
 'components' => [
-	// ...
-	'cdn' => [
-		'class' => '\yii2cdn\Cdn',
-		'baseUrl' => '/cdn',
-		'basePath' => dirname(__DIR__) . '/web/cdn',
-		'components' => [
-        	'jquery-fancybox' => [
-                'css' => [
-                    '@attributes' => [
-                        'noNameInPathUrls' => true, // Hide /css in urls
-                    ],
-                    [
-                        'dist/jquery.fancybox.css', // offline version
-                        '@cdn' => '//cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.css', // online version
-                    ],
-                ],
-                'js' => [
-                    '@attributes' => [
-                        'noNameInPathUrls' => true, // Hide /js in urls
-                    ],
-                    [
-                        'dist/jquery.fancybox.js', // offline version
-                        '@cdn' => '//cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.js', // online version
-                    ],
-                ],
-            ],
-		],
-	],
+  // ...
+  'cdn' => [
+    'class' => '\yii2cdn\Cdn',
+      'baseUrl' => '/cdn',
+      'basePath' => dirname(__DIR__) . '/web/cdn',
+      'components' => [
+      'jquery-fancybox' => [
+        'css' => [
+          '@attributes' => [
+            'noNameInPathUrls' => true, // Hide /css in urls
+          ],
+          [
+            'dist/jquery.fancybox.css', // offline version
+            '@cdn' => '//cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.css', // online version
+          ],
+        ],
+        'js' => [
+          '@attributes' => [
+            'noNameInPathUrls' => true, // Hide /js in urls
+          ],
+          [
+            'dist/jquery.fancybox.js', // offline version
+            '@cdn' => '//cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.js', // online version
+          ],
+        ],
+      ],
+    ],
+  ],
   // ...
 ],
 // ...
