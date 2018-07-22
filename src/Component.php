@@ -72,10 +72,10 @@ class Component {
 	 * @throws \yii\base\UnknownPropertyException
 	 */
 	public function __construct ( array $config ) {
-		$this->baseUrl = $config['baseUrl'];
-		$this->basePath = $config['basePath'];
-		$this->attributes = (array) $config['componentAttributes'];
-		$this->id = $config['id'];
+		$this->baseUrl = ArrayHelper::getValue ($config, 'baseUrl');
+		$this->basePath = ArrayHelper::getValue ($config, 'basePath');
+		$this->attributes = (array) ArrayHelper::getValue ($config, 'componentAttributes', []);
+		$this->id = ArrayHelper::getValue ($config, 'id');
 		$this->buildSections($config);
 	}
 
@@ -88,7 +88,14 @@ class Component {
 	 * @throws \yii\base\InvalidConfigException
 	 */
 	protected function buildSections ( array $config ) {
-		foreach ( $config['sections'] as $name ) {
+		/** @var array $sections */
+		$sections = ArrayHelper::getValue ($config, 'sections', []);
+
+		if ( !\is_array ($sections) || !\count ($sections) ) {
+			return;
+		}
+
+		foreach ( $sections as $name ) {
 			if ( !\array_key_exists($name, $config)
 				|| empty($config[$name]) ) {
 				continue;
@@ -99,7 +106,7 @@ class Component {
 
 			/// Section attributes
 			/** @var array $sectAttributes */
-			$sectAttributes = (array) $config['sectionsAttributes'][$name];
+			$sectAttributes = ArrayHelper::getValue ($config, "sectionsAttributes.$name", []);
 
 			// Defined all sections attributes
 			if ( \null !== $this->getAttr('@sectionsAttrs') ) {
@@ -110,9 +117,7 @@ class Component {
 			}
 
 			/** @var array $faName */
-			$faName = isset($config['fileAttrs'][$name])
-				? $config['fileAttrs'][$name]
-				: [];
+			$faName = ArrayHelper::getValue ($config, "fileAttrs.$name", []);
 
 			/** @var array $_attributes */
 			$_attributes = isset($config['fileAttrs'])
@@ -144,9 +149,10 @@ class Component {
 						: ''
 				);
 
-			// Create section(s) component
-			/** @var Section $section */			
-			$this->sections[$name] = Yii::createObject($config['sectionClass'], [[
+			/** @var static $className */
+			$className = ArrayHelper::getValue ($config, 'sectionClass');
+
+			$this->sections[$name] = Yii::createObject($className, [[
 				'component' => $this->id,
 				'section' =>$name,
 				'files' => $config[$name],
@@ -154,8 +160,8 @@ class Component {
 				'basePath' => \str_replace('/', DIRECTORY_SEPARATOR, $basePath),
 				'attributes' => $sectAttributes,
 				'fileAttributes' => $_attributes,
-				'fileClass' => $config['fileClass'],
-				'preComponents' => $config['preComponents']
+				'fileClass' => ArrayHelper::getValue ($config, 'fileClass'),
+				'preComponents' => ArrayHelper::getValue ($config, 'preComponents', [])
 			]]);
 
 			unset($config['preComponents']);
@@ -276,6 +282,7 @@ class Component {
 	 *    }
 	 * </code>
 	 * @throws \yii\base\UnknownPropertyException
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	public function register ( array $cssOptions = [], array $jsOptions = [], callable $callback = \null ) {
 		$this->registerCssFiles ( $cssOptions, $callback );
@@ -297,6 +304,7 @@ class Component {
 	 *    }
 	 * </code>
 	 * @throws \yii\base\UnknownPropertyException
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	public function registerCssFiles( array $options = [], callable $callback = \null ) {
 		if ( $this->sectionExists('css', \false ) ) {
@@ -326,6 +334,7 @@ class Component {
 	 *    }
 	 * </code>
 	 * @throws \yii\base\UnknownPropertyException
+	 * @throws \yii\base\InvalidConfigException
 	 */
 	public function registerJsFiles( array $options = [], callable $callback = \null ) {
 		if ( $this->sectionExists('js', \false ) ) {
