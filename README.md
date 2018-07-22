@@ -97,7 +97,7 @@ to the require section of your `composer.json` file.
 
 ```php
 //...
-Yii::$app->cdn->get('jquery.fancybox')->register();
+Yii::$app->cdn->get('jquery-fancybox')->register();
 //...
 ```
 
