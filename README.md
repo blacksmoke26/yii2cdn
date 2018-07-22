@@ -8,8 +8,13 @@
 # yii2cdn
 
 A Yii Framework 2 component for using assets in different environments (Local/CDNs)
+**Production Ready**: Used in several real projects is enough to prove its stability.
 
-**Notice:** *This is an experimental version. You may face difficulties, bugs and strange issues.* In case of any possibility, please create an [issue](https://github.com/blacksmoke26/yii2cdn/issues) and I will try to help you. :)
+**Requirements:**
+PHP 7.0+
+Yii2 Framework 2.0.12+
+
+**Bugs / Feature Request?:** Create your [issue here](https://github.com/blacksmoke26/yii2cdn/issues).
 
 ## Resources
 
@@ -37,18 +42,19 @@ to the require section of your `composer.json` file.
 
 ## Usage
 
-**Info:** *This tutorial will demonstrate how to use [`Font-Awesome`](https://github.com/FortAwesome/Font-Awesome) library in a <code>production</code> (online/CDN) or <code>development</code> (local/offline) environment.*
+**Info:** *This tutorial will demonstrate how to use [`FancyBox3`](http://fancyapps.com/fancybox/3/) library in a <code>production</code> (online/CDN) or <code>development</code> (local/offline) environment.*
 
 #### I. Installing a library
 --------------------------
-1. Create a <code>cdn</code> directory under your root folder.
-2. Install or download [`FortAwesome/Font-Awesome`](https://github.com/FortAwesome/Font-Awesome) library under <code>cdn</code> directory.
-  * Path should be `/cdn/font-awesome`.
+1. Create a <code>cdn</code> directory under the `/root/web` folder.
+2. Install or download [`FancyBox3`](http://fancyapps.com/fancybox/3/) library under <code>cdn</code> directory.
+  * Path should be `/root/web/cdn/jquery-fancybox`.
+  * CDN URLs: https://cdnjs.com/libraries/fancybox/3.3.5
 
 #### II. Add a component
 ---------------------
 1. Open `@app/config/main.php` in your code editor.
-2. Add a new propery `cdn` under `components` section like the following code:
+2. Add a new property `cdn` under `components` section like the following code:
 
 ```php
 // ...
@@ -57,17 +63,28 @@ to the require section of your `composer.json` file.
 	'cdn' => [
 		'class' => '\yii2cdn\Cdn',
 		'baseUrl' => '/cdn',
-		'basePath' => dirname(__DIR__, 2) . '/cdn',
+		'basePath' => dirname(__DIR__) . '/web/cdn',
 		'components' => [
-        	'font-awesome' => [
-            	'css' => [
-                	[
-                    	'font-awesome.min.css', // offline version
-                    	'@cdn' => '//cdnjs.cloudflare.com/ajax/libs/font-awesome/'
-                        		. '4.5.0/css/font-awesome.min.css', // online version
-                    ]
-                ]
-            ]
+        	'jquery-fancybox' => [
+                'css' => [
+                    '@attributes' => [
+                        'noNameInPathUrls' => true, // Hide /css in urls
+                    ],
+                    [
+                        'dist/jquery.fancybox.css', // offline version
+                        '@cdn' => '//cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.css', // online version
+                    ],
+                ],
+                'js' => [
+                    '@attributes' => [
+                        'noNameInPathUrls' => true, // Hide /js in urls
+                    ],
+                    [
+                        'dist/jquery.fancybox.js', // offline version
+                        '@cdn' => '//cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.js', // online version
+                    ],
+                ],
+            ],
 		],
 	],
   // ...
@@ -81,7 +98,7 @@ to the require section of your `composer.json` file.
 
 ```php
 //...
-Yii::$app->cdn->get('font-awesome')->register();
+Yii::$app->cdn->get('jquery.fancybox')->register();
 //...
 ```
 
